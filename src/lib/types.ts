@@ -20,6 +20,8 @@ export type BlogPost = {
   authorImage: string;
   date: string;
   tags: string[];
+  imageUrl: string;
+  'data-ai-hint'?: string;
 };
 
 

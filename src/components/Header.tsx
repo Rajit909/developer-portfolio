@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Menu, Code2 } from "lucide-react";
 import { usePathname } from 'next/navigation';
 import { cn } from "@/lib/utils";
+import { ThemeToggle } from "./theme-toggle";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -37,36 +38,40 @@ export default function Header() {
           <span className="font-headline text-lg font-bold">DevFolio Dynamics</span>
         </Link>
 
-        <nav className="hidden md:flex items-center gap-6 text-sm">
-          {navLinks.map((link) => (
-            <NavLink key={link.href} {...link} />
-          ))}
-        </nav>
+        <div className="flex items-center gap-4">
+          <nav className="hidden md:flex items-center gap-6 text-sm">
+            {navLinks.map((link) => (
+              <NavLink key={link.href} {...link} />
+            ))}
+          </nav>
+          
+          <ThemeToggle />
 
-        <div className="md:hidden">
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Menu className="h-6 w-6" />
-                <span className="sr-only">Toggle navigation menu</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right">
-              <div className="grid gap-6 p-6">
-                <Link href="/" className="flex items-center gap-2">
-                  <Code2 className="h-6 w-6 text-primary" />
-                  <span className="font-headline text-lg font-bold">DevFolio Dynamics</span>
-                </Link>
-                <nav className="grid gap-4">
-                  {navLinks.map((link) => (
-                     <Link key={link.href} href={link.href} className="text-lg font-medium hover:text-primary transition-colors">
-                      {link.label}
-                    </Link>
-                  ))}
-                </nav>
-              </div>
-            </SheetContent>
-          </Sheet>
+          <div className="md:hidden">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Menu className="h-6 w-6" />
+                  <span className="sr-only">Toggle navigation menu</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right">
+                <div className="grid gap-6 p-6">
+                  <Link href="/" className="flex items-center gap-2">
+                    <Code2 className="h-6 w-6 text-primary" />
+                    <span className="font-headline text-lg font-bold">DevFolio Dynamics</span>
+                  </Link>
+                  <nav className="grid gap-4">
+                    {navLinks.map((link) => (
+                       <Link key={link.href} href={link.href} className="text-lg font-medium hover:text-primary transition-colors">
+                        {link.label}
+                      </Link>
+                    ))}
+                  </nav>
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
         </div>
       </div>
     </header>

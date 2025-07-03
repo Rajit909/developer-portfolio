@@ -68,6 +68,8 @@ Let's get started!
     authorImage: 'https://placehold.co/40x40.png',
     date: '2024-07-20',
     tags: ['Next.js', 'React', 'Web Development', 'Performance'],
+    imageUrl: 'https://placehold.co/800x600.png',
+    'data-ai-hint': 'react code',
   },
   {
     slug: 'ai-in-modern-web-dev',
@@ -86,6 +88,8 @@ This article will cover:
     authorImage: 'https://placehold.co/40x40.png',
     date: '2024-07-15',
     tags: ['AI', 'Genkit', 'Next.js', 'API'],
+    imageUrl: 'https://placehold.co/800x600.png',
+    'data-ai-hint': 'artificial intelligence brain',
   },
   {
     slug: 'tailwind-css-best-practices',
@@ -104,6 +108,8 @@ In this post, we'll discuss:
     authorImage: 'https://placehold.co/40x40.png',
     date: '2024-07-10',
     tags: ['CSS', 'Tailwind CSS', 'Web Design'],
+    imageUrl: 'https://placehold.co/800x600.png',
+    'data-ai-hint': 'css code',
   },
 ];
 
