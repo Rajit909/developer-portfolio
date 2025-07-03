@@ -31,3 +31,8 @@ export type Achievement = {
     year: string | number;
     icon: React.ComponentType<{ className?: string }>;
 };
+
+export type Tech = {
+    name: string;
+    icon?: React.ComponentType<{ className?: string }>;
+};

@@ -1,5 +1,15 @@
-import type { Project, BlogPost, Achievement } from './types';
-import { Award, Code, Trophy, Users } from 'lucide-react';
+import type { Project, BlogPost, Achievement, Tech } from './types';
+import { Award, Code, Trophy, Users, Database } from 'lucide-react';
+
+export const techStack: Tech[] = [
+    { name: 'React', icon: undefined },
+    { name: 'Next.js', icon: undefined },
+    { name: 'TypeScript', icon: undefined },
+    { name: 'Node.js', icon: undefined },
+    { name: 'Tailwind CSS', icon: undefined },
+    { name: 'PostgreSQL', icon: Database },
+    { name: 'Genkit', icon: Code },
+];
 
 export const projects: Project[] = [
   {

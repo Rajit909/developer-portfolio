@@ -2,10 +2,11 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
-import { projects, blogPosts, achievements } from '@/lib/data';
+import { projects, blogPosts, achievements, techStack } from '@/lib/data';
 import ProjectCard from '@/components/ProjectCard';
 import BlogCard from '@/components/BlogCard';
 import AchievementCard from '@/components/AchievementCard';
+import TechStack from '@/components/TechStack';
 
 export default function Home() {
   const featuredProjects = projects.filter(p => p.featured).slice(0, 3);
@@ -59,8 +60,14 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Achievements Section */}
+       {/* Tech Stack Section */}
       <section className="opacity-0 animate-fade-in-up" style={{ animationDelay: '400ms' }}>
+        <h2 className="font-headline text-3xl font-bold mb-12 text-center">My Tech Stack</h2>
+        <TechStack technologies={techStack} />
+      </section>
+
+      {/* Achievements Section */}
+      <section className="opacity-0 animate-fade-in-up" style={{ animationDelay: '600ms' }}>
         <h2 className="font-headline text-3xl font-bold mb-12 text-center">My Achievements</h2>
          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {achievements.map((achievement, index) => (
@@ -70,7 +77,7 @@ export default function Home() {
       </section>
 
       {/* Recent Blog Posts Section */}
-      <section className="opacity-0 animate-fade-in-up" style={{ animationDelay: '600ms' }}>
+      <section className="opacity-0 animate-fade-in-up" style={{ animationDelay: '800ms' }}>
         <h2 className="font-headline text-3xl font-bold mb-8 text-center">From the Blog</h2>
         <div className="grid md:grid-cols-1 lg:grid-cols-3 gap-8">
           {recentPosts.map((post) => (
