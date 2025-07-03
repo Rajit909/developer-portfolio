@@ -1,7 +1,9 @@
-import { projects } from '@/lib/data';
+import { getProjects } from '@/lib/api';
 import ProjectFilters from '@/components/ProjectFilters';
 
-export default function ProjectsPage() {
+export default async function ProjectsPage() {
+  const projects = await getProjects();
+  
   return (
     <div className="space-y-8">
       <div className="text-center">

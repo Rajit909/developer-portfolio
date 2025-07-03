@@ -2,15 +2,20 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
-import { projects, blogPosts, achievements, techStack } from '@/lib/data';
+import { getProjects, getBlogPosts, getAchievements, getTechStack } from '@/lib/api';
 import ProjectCard from '@/components/ProjectCard';
 import BlogCard from '@/components/BlogCard';
 import AchievementCard from '@/components/AchievementCard';
 import TechStack from '@/components/TechStack';
 
-export default function Home() {
-  const featuredProjects = projects.filter(p => p.featured).slice(0, 3);
-  const recentPosts = blogPosts.slice(0, 3);
+export default async function Home() {
+  const allProjects = await getProjects();
+  const allBlogPosts = await getBlogPosts();
+  const allAchievements = await getAchievements();
+  const allTechStack = await getTechStack();
+
+  const featuredProjects = allProjects.filter(p => p.featured).slice(0, 3);
+  const recentPosts = allBlogPosts.slice(0, 3);
 
   return (
     <div className="space-y-24">
@@ -63,14 +68,14 @@ export default function Home() {
        {/* Tech Stack Section */}
       <section className="opacity-0 animate-fade-in-up" style={{ animationDelay: '400ms' }}>
         <h2 className="font-headline text-3xl font-bold mb-12 text-center">My Tech Stack</h2>
-        <TechStack technologies={techStack} />
+        <TechStack technologies={allTechStack} />
       </section>
 
       {/* Achievements Section */}
       <section className="opacity-0 animate-fade-in-up" style={{ animationDelay: '600ms' }}>
         <h2 className="font-headline text-3xl font-bold mb-12 text-center">My Achievements</h2>
          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {achievements.map((achievement, index) => (
+          {allAchievements.map((achievement, index) => (
             <AchievementCard key={achievement.title} achievement={achievement} index={index} />
           ))}
         </div>

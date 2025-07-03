@@ -1,9 +1,10 @@
-import { blogPosts } from '@/lib/data';
+import { getBlogPosts } from '@/lib/api';
 import BlogCard from '@/components/BlogCard';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
-export default function BlogPage() {
+export default async function BlogPage() {
+  const blogPosts = await getBlogPosts();
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-center">
