@@ -12,14 +12,14 @@ interface ProjectCardProps {
 
 export default function ProjectCard({ project }: ProjectCardProps) {
   return (
-    <Card className="flex flex-col h-full overflow-hidden transition-all duration-300 hover:shadow-xl">
+    <Card className="flex flex-col h-full overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-2">
       <CardHeader>
-        <div className="aspect-[3/2] relative mb-4">
+        <div className="aspect-[4/3] relative mb-4 overflow-hidden rounded-t-lg">
             <Image
                 src={project.imageUrl}
                 alt={project.title}
                 fill
-                className="object-cover rounded-t-lg"
+                className="object-cover group-hover:scale-105 transition-transform duration-300"
                 data-ai-hint={project['data-ai-hint']}
             />
         </div>

@@ -21,3 +21,11 @@ export type BlogPost = {
   date: string;
   tags: string[];
 };
+
+
+export type Achievement = {
+    title: string;
+    description: string;
+    year: string | number;
+    icon: React.ComponentType<{ className?: string }>;
+};

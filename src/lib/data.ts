@@ -1,4 +1,5 @@
-import type { Project, BlogPost } from './types';
+import type { Project, BlogPost, Achievement } from './types';
+import { Award, Code, Trophy, Users } from 'lucide-react';
 
 export const projects: Project[] = [
   {
@@ -7,8 +8,8 @@ export const projects: Project[] = [
     description: 'A full-stack e-commerce solution with a modern tech stack.',
     longDescription: 'This project is a feature-rich e-commerce platform built with Next.js, TypeScript, and Stripe for payments. It includes user authentication, product catalog, shopping cart, and a complete checkout process. The backend is powered by Node.js and Express, with a PostgreSQL database.',
     technologies: ['Next.js', 'React', 'TypeScript', 'Stripe', 'Node.js', 'PostgreSQL'],
-    imageUrl: 'https://placehold.co/600x400.png',
-    'data-ai-hint': 'e-commerce website',
+    imageUrl: 'https://placehold.co/800x600.png',
+    'data-ai-hint': 'e-commerce checkout',
     githubUrl: '#',
     liveUrl: '#',
     featured: true,
@@ -19,10 +20,20 @@ export const projects: Project[] = [
     description: 'A collaborative task management tool for teams.',
     longDescription: 'A Kanban-style task management application designed for team collaboration. Features include drag-and-drop boards, real-time updates with WebSockets, user assignments, and project analytics. Built using the MERN stack (MongoDB, Express, React, Node.js).',
     technologies: ['React', 'Node.js', 'MongoDB', 'WebSocket'],
-    imageUrl: 'https://placehold.co/600x400.png',
-    'data-ai-hint': 'task management',
+    imageUrl: 'https://placehold.co/800x600.png',
+    'data-ai-hint': 'kanban board',
     githubUrl: '#',
     liveUrl: '#',
+    featured: true,
+  },
+   {
+    slug: 'data-visualization-dashboard',
+    title: 'Data Visualization Dashboard',
+    description: 'An interactive dashboard for visualizing complex datasets.',
+    longDescription: 'This dashboard allows users to upload, process, and visualize large datasets through interactive charts and graphs. Built with D3.js and React, it provides various chart types and customization options to explore data effectively.',
+    technologies: ['React', 'D3.js', 'TypeScript'],
+    imageUrl: 'https://placehold.co/800x600.png',
+    'data-ai-hint': 'analytics dashboard',
     featured: true,
   },
   {
@@ -31,19 +42,9 @@ export const projects: Project[] = [
     description: 'The very portfolio you are browsing now!',
     longDescription: 'This portfolio was built to showcase my skills in modern web development. It uses Next.js for server-side rendering and static site generation, Tailwind CSS for styling, and Genkit for AI-powered features like blog tag suggestions. It is fully responsive and designed for a great user experience.',
     technologies: ['Next.js', 'TypeScript', 'Tailwind CSS', 'Genkit'],
-    imageUrl: 'https://placehold.co/600x400.png',
-    'data-ai-hint': 'developer portfolio',
+    imageUrl: 'https://placehold.co/800x600.png',
+    'data-ai-hint': 'code editor',
     githubUrl: '#',
-  },
-   {
-    slug: 'data-visualization-dashboard',
-    title: 'Data Visualization Dashboard',
-    description: 'An interactive dashboard for visualizing complex datasets.',
-    longDescription: 'This dashboard allows users to upload, process, and visualize large datasets through interactive charts and graphs. Built with D3.js and React, it provides various chart types and customization options to explore data effectively.',
-    technologies: ['React', 'D3.js', 'TypeScript'],
-    imageUrl: 'https://placehold.co/600x400.png',
-    'data-ai-hint': 'data dashboard',
-    featured: true,
   },
 ];
 
@@ -64,7 +65,7 @@ In this post, we'll explore:
 Let's get started!
     `,
     author: 'Alex Developer',
-    authorImage: 'https://placehold.co/100x100.png',
+    authorImage: 'https://placehold.co/40x40.png',
     date: '2024-07-20',
     tags: ['Next.js', 'React', 'Web Development', 'Performance'],
   },
@@ -82,7 +83,7 @@ This article will cover:
 - The ethical considerations and future of AI in web development.
     `,
     author: 'Alex Developer',
-    authorImage: 'https://placehold.co/100x100.png',
+    authorImage: 'https://placehold.co/40x40.png',
     date: '2024-07-15',
     tags: ['AI', 'Genkit', 'Next.js', 'API'],
   },
@@ -100,8 +101,36 @@ In this post, we'll discuss:
 - Plugins and tools to streamline your workflow.
     `,
     author: 'Alex Developer',
-    authorImage: 'https://placehold.co/100x100.png',
+    authorImage: 'https://placehold.co/40x40.png',
     date: '2024-07-10',
     tags: ['CSS', 'Tailwind CSS', 'Web Design'],
   },
 ];
+
+
+export const achievements: Achievement[] = [
+    {
+        icon: Trophy,
+        year: 2023,
+        title: 'Top-Rated Developer',
+        description: 'Received "Top-Rated" status on a major freelancing platform for consistent high-quality work.',
+    },
+    {
+        icon: Award,
+        year: 2022,
+        title: 'Community Contribution Award',
+        description: 'Recognized for significant contributions to open-source projects and developer communities.',
+    },
+    {
+        icon: Code,
+        year: '2021',
+        title: 'Hackathon Winner',
+        description: 'First place in the annual "Code for Good" hackathon, developing an app for local charities.',
+    },
+    {
+        icon: Users,
+        year: '2020',
+        title: 'Featured Speaker',
+        description: 'Invited to speak at a regional tech conference about modern frontend development techniques.',
+    }
+]
