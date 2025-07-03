@@ -35,7 +35,7 @@ export default function Header() {
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <Link href="/" className="flex items-center gap-2">
           <Code2 className="h-6 w-6 text-primary" />
-          <span className="font-headline text-lg font-bold">DevFolio Dynamics</span>
+          <span className="font-headline text-lg font-bold">Rajit Kumar</span>
         </Link>
 
         <div className="flex items-center gap-4">
@@ -59,7 +59,7 @@ export default function Header() {
                 <div className="grid gap-6 p-6">
                   <Link href="/" className="flex items-center gap-2">
                     <Code2 className="h-6 w-6 text-primary" />
-                    <span className="font-headline text-lg font-bold">DevFolio Dynamics</span>
+                    <span className="font-headline text-lg font-bold">Rajit Kumar</span>
                   </Link>
                   <nav className="grid gap-4">
                     {navLinks.map((link) => (

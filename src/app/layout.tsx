@@ -6,8 +6,8 @@ import Footer from '@/components/Footer';
 import { ThemeProvider } from '@/components/theme-provider';
 
 export const metadata: Metadata = {
-  title: 'DevFolio Dynamics',
-  description: 'A dynamic and functional developer portfolio.',
+  title: 'Rajit Kumar',
+  description: 'Portfolio of Rajit Kumar, a passionate developer building modern, responsive, and user-centric web applications.',
 };
 
 export default function RootLayout({

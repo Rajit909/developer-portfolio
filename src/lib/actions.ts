@@ -1,7 +1,9 @@
 "use server";
 
 import { z } from "zod";
+import { revalidatePath } from "next/cache";
 import { suggestBlogTags, SuggestBlogTagsInput } from "@/ai/flows/suggest-blog-tags";
+import clientPromise from "./mongodb";
 
 const contactFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
@@ -28,6 +30,76 @@ export async function handleContactForm(prevState: any, formData: FormData) {
   console.log("Contact form submitted:", validatedFields.data);
 
   return { message: "Thank you for your message! I'll get back to you soon." };
+}
+
+const postSchema = z.object({
+    title: z.string().min(5, "Title must be at least 5 characters."),
+    content: z.string().min(50, "Content must be at least 50 characters."),
+    tags: z.string(), // comma separated string
+});
+
+function createSlug(title: string): string {
+    return title
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '') // remove non-alphanumeric characters
+      .trim()
+      .replace(/\s+/g, '-') // replace spaces with hyphens
+      .replace(/-+/g, '-'); // remove consecutive hyphens
+}
+
+export async function handleNewPost(prevState: any, formData: FormData) {
+    if (!process.env.MONGODB_URI) {
+        return { message: "Database is not configured. Please set the MONGODB_URI environment variable." };
+    }
+
+    const validatedFields = postSchema.safeParse({
+        title: formData.get("title"),
+        content: formData.get("content"),
+        tags: formData.get("tags"), // comes as a string
+    });
+    
+    if (!validatedFields.success) {
+        return {
+            errors: validatedFields.error.flatten().fieldErrors,
+            message: "Please correct the errors and try again.",
+        };
+    }
+
+    try {
+        const client = await clientPromise;
+        const db = client.db();
+        
+        const { title, content, tags } = validatedFields.data;
+        const tagsArray = tags.split(',').map(tag => tag.trim()).filter(Boolean);
+
+        const newPost = {
+            slug: createSlug(title),
+            title,
+            content,
+            tags: tagsArray,
+            excerpt: content.substring(0, 150) + '...',
+            author: 'Rajit Kumar',
+            authorImage: 'https://placehold.co/40x40.png',
+            date: new Date().toISOString(),
+            imageUrl: 'https://placehold.co/800x600.png',
+            'data-ai-hint': 'blog abstract',
+        };
+
+        const result = await db.collection("posts").insertOne(newPost);
+        
+        if (!result.insertedId) {
+             return { message: "Database error: Failed to create post." };
+        }
+
+        revalidatePath("/blog"); // Revalidate blog listing page
+        revalidatePath(`/blog/${newPost.slug}`); // Revalidate the new blog post page
+
+        return { message: "Successfully created your new blog post!", errors: {} };
+
+    } catch (error) {
+        console.error("Database insertion error:", error);
+        return { message: "An unexpected error occurred. Please try again." };
+    }
 }
 
 

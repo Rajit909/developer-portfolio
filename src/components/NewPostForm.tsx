@@ -1,10 +1,9 @@
 "use client";
 
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { getTagSuggestions } from '@/lib/actions';
+import { useState, useEffect } from 'react';
+import { useFormState, useFormStatus } from 'react-dom';
+import { getTagSuggestions, handleNewPost } from '@/lib/actions';
+import { useToast } from '@/hooks/use-toast';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,28 +11,57 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, X, Loader2 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Sparkles, X, Loader2, ArrowRight } from 'lucide-react';
 
-const postSchema = z.object({
-    title: z.string().min(5, "Title must be at least 5 characters."),
-    content: z.string().min(50, "Content must be at least 50 characters."),
-    tags: z.array(z.string()).optional(),
-});
+const initialState = {
+  message: null,
+  errors: {},
+};
 
-type PostFormData = z.infer<typeof postSchema>;
+function SubmitButton() {
+    const { pending } = useFormStatus();
+    return (
+        <Button type="submit" disabled={pending}>
+            {pending ? (
+                <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Publishing...
+                </>
+            ) : (
+                <>
+                    Publish Post <ArrowRight className="ml-2 h-4 w-4" />
+                </>
+            )}
+        </Button>
+    );
+}
 
 export default function NewPostForm() {
+    const [state, formAction] = useFormState(handleNewPost, initialState);
+    const { toast } = useToast();
+
+    const [contentValue, setContentValue] = useState('');
     const [suggestedTags, setSuggestedTags] = useState<string[]>([]);
     const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
     const [isSuggesting, setIsSuggesting] = useState(false);
-    const { toast } = useToast();
-
-    const { register, handleSubmit, watch, formState: { errors } } = useForm<PostFormData>({
-        resolver: zodResolver(postSchema),
-    });
-
-    const contentValue = watch("content");
+    
+    useEffect(() => {
+        if (state.message) {
+            if(state.errors && Object.keys(state.errors).length > 0){
+                toast({
+                    title: 'Error creating post',
+                    description: state.message,
+                    variant: 'destructive',
+                });
+            } else {
+                 toast({
+                    title: 'Success!',
+                    description: state.message,
+                });
+                // Here you would typically reset the form or redirect.
+                // For now, we just show the toast.
+            }
+        }
+    }, [state, toast]);
 
     const handleSuggestTags = async () => {
         setIsSuggesting(true);
@@ -63,38 +91,29 @@ export default function NewPostForm() {
         });
     };
 
-    const onSubmit = (data: PostFormData) => {
-        const finalData = { ...data, tags: Array.from(selectedTags) };
-        console.log("Submitting post:", finalData);
-        // In a real app, this would save to a database.
-        toast({
-            title: 'Post Submitted!',
-            description: 'Your new blog post has been created.',
-        });
-    };
-
     return (
         <Card>
-            <form onSubmit={handleSubmit(onSubmit)}>
+            <form action={formAction}>
                 <CardHeader>
                     <CardTitle className="font-headline">New Blog Post</CardTitle>
-                    <CardDescription>Fill in the details for your new post.</CardDescription>
+                    <CardDescription>Fill in the details for your new post. It will be saved to the database.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                     <div className="space-y-2">
                         <Label htmlFor="title">Title</Label>
-                        <Input id="title" {...register("title")} />
-                        {errors.title && <p className="text-sm text-destructive">{errors.title.message}</p>}
+                        <Input id="title" name="title" />
+                        {state.errors?.title && <p className="text-sm text-destructive">{state.errors.title[0]}</p>}
                     </div>
 
                     <div className="space-y-2">
                         <Label htmlFor="content">Content</Label>
-                        <Textarea id="content" {...register("content")} rows={10} />
-                        {errors.content && <p className="text-sm text-destructive">{errors.content.message}</p>}
+                        <Textarea id="content" name="content" rows={10} onChange={(e) => setContentValue(e.target.value)} />
+                        {state.errors?.content && <p className="text-sm text-destructive">{state.errors.content[0]}</p>}
                     </div>
                     
                     <div className="space-y-4">
                         <Label>Tags</Label>
+                        <input type="hidden" name="tags" value={Array.from(selectedTags).join(', ')} />
                         <div className="space-y-2">
                              <Button type="button" onClick={handleSuggestTags} disabled={isSuggesting || !contentValue || contentValue.length < 50}>
                                 {isSuggesting ? (
@@ -138,11 +157,11 @@ export default function NewPostForm() {
                                 </div>
                             </div>
                         )}
+                        {state.errors?.tags && <p className="text-sm text-destructive">{state.errors.tags[0]}</p>}
                     </div>
-
                 </CardContent>
                 <CardFooter>
-                    <Button type="submit">Publish Post</Button>
+                    <SubmitButton />
                 </CardFooter>
             </form>
         </Card>

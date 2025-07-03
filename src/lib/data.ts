@@ -58,6 +58,7 @@ export const projects: Project[] = [
   },
 ];
 
+// This is now fallback data. The app will fetch from the database.
 export const blogPosts: BlogPost[] = [
   {
     slug: 'mastering-server-components',
@@ -74,7 +75,7 @@ In this post, we'll explore:
 
 Let's get started!
     `,
-    author: 'Alex Developer',
+    author: 'Rajit Kumar',
     authorImage: 'https://placehold.co/40x40.png',
     date: '2024-07-20',
     tags: ['Next.js', 'React', 'Web Development', 'Performance'],
@@ -94,7 +95,7 @@ This article will cover:
 - Building an AI-powered feature: automatic blog post tagging.
 - The ethical considerations and future of AI in web development.
     `,
-    author: 'Alex Developer',
+    author: 'Rajit Kumar',
     authorImage: 'https://placehold.co/40x40.png',
     date: '2024-07-15',
     tags: ['AI', 'Genkit', 'Next.js', 'API'],
@@ -114,7 +115,7 @@ In this post, we'll discuss:
 - Strategies for responsive design.
 - Plugins and tools to streamline your workflow.
     `,
-    author: 'Alex Developer',
+    author: 'Rajit Kumar',
     authorImage: 'https://placehold.co/40x40.png',
     date: '2024-07-10',
     tags: ['CSS', 'Tailwind CSS', 'Web Design'],
