@@ -8,8 +8,8 @@ let clientPromise: Promise<MongoClient>;
 
 if (!process.env.MONGODB_URI) {
   console.warn("MongoDB URI not found. Database features will be disabled.");
-  // Create a dummy promise that will never resolve to prevent crashes
-  clientPromise = new Promise(() => {});
+  // Create a rejecting promise to prevent the application from hanging when a database connection is attempted.
+  clientPromise = Promise.reject(new Error("MONGODB_URI is not defined in .env file"));
 } else {
     if (process.env.NODE_ENV === 'development') {
     // In development mode, use a global variable so that the value

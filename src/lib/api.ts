@@ -1,4 +1,4 @@
-import { projects, achievements, techStack } from './data';
+import { projects, achievements, techStack, blogPosts as staticBlogPosts } from './data';
 import type { Project, BlogPost, Achievement, Tech } from './types';
 
 // This is a temporary solution for determining the base URL.
@@ -26,14 +26,14 @@ export async function getProjectBySlug(slug: string): Promise<Project | undefine
 
 export async function getBlogPosts(): Promise<BlogPost[]> {
     if (!process.env.MONGODB_URI) {
-        console.warn("MongoDB URI not found, returning empty array for blog posts.");
-        return [];
+        console.warn("MongoDB URI not found, falling back to static blog posts.");
+        return staticBlogPosts;
     }
     try {
         const res = await fetch(`${API_BASE_URL}/api/blog`, { cache: 'no-store' });
         if (!res.ok) {
-            console.error(`Failed to fetch blog posts, status: ${res.status}`);
-            return [];
+            console.error(`Failed to fetch blog posts, status: ${res.status}. Falling back to static data.`);
+            return staticBlogPosts;
         }
         const postsData = await res.json();
         // Ensure the returned data is properly typed
@@ -43,20 +43,21 @@ export async function getBlogPosts(): Promise<BlogPost[]> {
         }));
         return posts;
     } catch (error) {
-        console.error("Failed to fetch blog posts:", error);
-        return [];
+        console.error("Failed to fetch blog posts, falling back to static data:", error);
+        return staticBlogPosts;
     }
 }
 
 export async function getBlogPostBySlug(slug: string): Promise<BlogPost | undefined> {
      if (!process.env.MONGODB_URI) {
-        console.warn("MongoDB URI not found, returning undefined for blog post.");
-        return undefined;
+        console.warn("MongoDB URI not found, falling back to static blog post for slug:", slug);
+        return staticBlogPosts.find(p => p.slug === slug);
     }
     try {
         const res = await fetch(`${API_BASE_URL}/api/blog/${slug}`, { cache: 'no-store' });
         if (!res.ok) {
-            return undefined;
+            console.warn(`API failed to fetch post '${slug}', status: ${res.status}. Falling back to static data.`);
+            return staticBlogPosts.find(p => p.slug === slug);
         }
         const postData = await res.json();
         const post: BlogPost = {
@@ -65,8 +66,8 @@ export async function getBlogPostBySlug(slug: string): Promise<BlogPost | undefi
         }
         return post;
     } catch (error) {
-        console.error(`Failed to fetch blog post with slug ${slug}:`, error);
-        return undefined;
+        console.error(`Failed to fetch blog post with slug ${slug}, falling back to static data:`, error);
+        return staticBlogPosts.find(p => p.slug === slug);
     }
 }
 
