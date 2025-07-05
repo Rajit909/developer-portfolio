@@ -87,7 +87,7 @@ export async function handleNewPost(prevState: any, formData: FormData) {
             title,
             content,
             tags: tagsArray,
-            excerpt: content.substring(0, 150) + '...',
+            excerpt: content.substring(0, 150).replace(/<[^>]+>/g, '') + '...',
             author: 'Rajit Kumar',
             authorImage: 'https://placehold.co/40x40.png',
             date: new Date().toISOString(),
@@ -103,6 +103,8 @@ export async function handleNewPost(prevState: any, formData: FormData) {
         
         revalidatePath("/blog");
         revalidatePath(`/blog/${slug}`);
+        revalidatePath("/admin/blog");
+        revalidatePath("/");
         
     } catch (error: any) {
         if (error.digest?.startsWith('NEXT_REDIRECT')) {
@@ -129,6 +131,31 @@ export async function handleNewPost(prevState: any, formData: FormData) {
     }
 }
 
+export async function deletePost(slug: string): Promise<{ success: boolean; message: string }> {
+  try {
+    if (!process.env.MONGODB_URI) {
+      throw new Error("MongoDB URI not found.");
+    }
+
+    const client = await clientPromise;
+    const db = client.db('portfolio-data');
+
+    const result = await db.collection("posts").deleteOne({ slug });
+
+    if (result.deletedCount === 0) {
+      throw new Error("Could not find the post to delete.");
+    }
+
+    revalidatePath("/blog");
+    revalidatePath("/admin/blog");
+    revalidatePath("/");
+
+    return { success: true, message: "Post deleted successfully." };
+  } catch (error: any) {
+    console.error("Failed to delete post:", error);
+    return { success: false, message: error.message || "An unexpected error occurred." };
+  }
+}
 
 export async function getTagSuggestions(content: string) {
     if (!content || content.trim().length < 50) {

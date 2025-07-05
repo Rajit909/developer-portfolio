@@ -12,10 +12,11 @@ export type Project = {
 };
 
 export type BlogPost = {
+  _id?: string;
   slug: string;
   title: string;
   excerpt: string;
-  content: string; // Markdown content
+  content: string; // HTML content
   author: string;
   authorImage: string;
   date: string;
