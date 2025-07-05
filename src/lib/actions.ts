@@ -67,8 +67,7 @@ export async function handleNewPost(prevState: any, formData: FormData) {
     }
 
     const { title, content, tags } = validatedFields.data;
-    let finalSlug = "";
-
+    
     try {
         const client = await clientPromise;
         const db = client.db();
@@ -80,7 +79,6 @@ export async function handleNewPost(prevState: any, formData: FormData) {
         if (existingPost) {
             slug = `${slug}-${Math.random().toString(36).substring(2, 7)}`;
         }
-        finalSlug = slug;
         
         const tagsArray = tags.split(',').map(tag => tag.trim()).filter(Boolean);
 
@@ -100,19 +98,24 @@ export async function handleNewPost(prevState: any, formData: FormData) {
         const result = await db.collection("posts").insertOne(newPost);
         
         if (!result.insertedId) {
-             return { message: "Database error: Failed to create post.", errors: {} };
+             throw new Error("Database error: Failed to create post.");
         }
 
         revalidatePath("/blog");
         revalidatePath(`/blog/${slug}`);
+        
+        redirect(`/blog/${slug}`); // Throws NEXT_REDIRECT
 
-    } catch (error) {
-        console.error("Database insertion error:", error);
+    } catch (error: any) {
+        // The redirect() function throws an error that needs to be handled by Next.js.
+        // We re-throw it here to ensure it's not caught by our general error handler.
+        if (error.digest?.startsWith('NEXT_REDIRECT')) {
+            throw error;
+        }
+
+        console.error("Post creation error:", error);
         return { message: "An unexpected error occurred. Please try again.", errors: {} };
     }
-    
-    // If we reach here, it means success. Redirect to the new post.
-    redirect(`/blog/${finalSlug}`);
 }
 
 
