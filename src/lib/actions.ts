@@ -49,26 +49,22 @@ function createSlug(title: string): string {
 }
 
 export async function handleNewPost(prevState: any, formData: FormData) {
-    if (!process.env.MONGODB_URI) {
-        return { message: "Database is not configured. Please set the MONGODB_URI environment variable.", errors: {} };
-    }
-
-    const validatedFields = postSchema.safeParse({
-        title: formData.get("title"),
-        content: formData.get("content"),
-        tags: formData.get("tags"),
-    });
-    
-    if (!validatedFields.success) {
-        return {
-            errors: validatedFields.error.flatten().fieldErrors,
-            message: "Please correct the errors and try again.",
-        };
-    }
-
-    const { title, content, tags } = validatedFields.data;
-    
     try {
+        const validatedFields = postSchema.safeParse({
+            title: formData.get("title"),
+            content: formData.get("content"),
+            tags: formData.get("tags"),
+        });
+        
+        if (!validatedFields.success) {
+            return {
+                errors: validatedFields.error.flatten().fieldErrors,
+                message: "Please correct the errors and try again.",
+            };
+        }
+
+        const { title, content, tags } = validatedFields.data;
+        
         const client = await clientPromise;
         const db = client.db();
         
@@ -114,7 +110,11 @@ export async function handleNewPost(prevState: any, formData: FormData) {
         }
 
         console.error("Post creation error:", error);
-        return { message: "An unexpected error occurred. Please try again.", errors: {} };
+        // Provide a more specific error message to the client
+        return { 
+            message: error.message || "An unexpected error occurred. Please try again.", 
+            errors: {} 
+        };
     }
 }
 
