@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useState, useEffect, useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { getTagSuggestions, handleNewPost } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 
@@ -36,7 +36,7 @@ function SubmitButton() {
 }
 
 export default function NewPostForm() {
-    const [state, formAction] = useFormState(handleNewPost, initialState);
+    const [state, formAction] = useActionState(handleNewPost, initialState);
     const { toast } = useToast();
 
     const [contentValue, setContentValue] = useState('');
