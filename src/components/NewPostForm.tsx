@@ -45,21 +45,14 @@ export default function NewPostForm() {
     const [isSuggesting, setIsSuggesting] = useState(false);
     
     useEffect(() => {
+        // The `handleNewPost` action redirects on success, so we only need to handle error messages here.
+        // Any state with a `message` property indicates an error occurred.
         if (state.message) {
-            if(state.errors && Object.keys(state.errors).length > 0){
-                toast({
-                    title: 'Error creating post',
-                    description: state.message,
-                    variant: 'destructive',
-                });
-            } else {
-                 toast({
-                    title: 'Success!',
-                    description: state.message,
-                });
-                // Here you would typically reset the form or redirect.
-                // For now, we just show the toast.
-            }
+            toast({
+                title: 'Error Creating Post',
+                description: state.message,
+                variant: 'destructive',
+            });
         }
     }, [state, toast]);
 
