@@ -13,10 +13,15 @@ interface ProjectPageProps {
 }
 
 export async function generateStaticParams() {
-  const projects = await getProjects();
-  return projects.map((project) => ({
-    slug: project.slug,
-  }));
+  try {
+    const projects = await getProjects();
+    return projects.map((project) => ({
+      slug: project.slug,
+    }));
+  } catch (error) {
+    console.error("Failed to generate static params for projects:", error);
+    return [];
+  }
 }
 
 export default async function ProjectPage({ params }: ProjectPageProps) {

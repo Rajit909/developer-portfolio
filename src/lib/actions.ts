@@ -7,7 +7,7 @@ import { suggestBlogTags, SuggestBlogTagsInput } from "@/ai/flows/suggest-blog-t
 import { suggestBlogContent, SuggestBlogContentInput } from "@/ai/flows/suggest-blog-content";
 import { generateBlogImage, GenerateBlogImageInput } from "@/ai/flows/generate-blog-image";
 import clientPromise from "./mongodb";
-import { BlogPost } from "./types";
+import { BlogPost, Project } from "./types";
 
 const contactFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
@@ -41,6 +41,17 @@ const postSchema = z.object({
     content: z.string().min(50, "Content must be at least 50 characters."),
     tags: z.string(), // comma separated string
     imageUrl: z.string().url("A valid featured image URL is required.").min(1),
+});
+
+const projectSchema = z.object({
+    title: z.string().min(3, "Title must be at least 3 characters."),
+    description: z.string().min(10, "Short description must be at least 10 characters."),
+    longDescription: z.string().min(50, "Long description must be at least 50 characters."),
+    technologies: z.string().min(1, "Please add at least one technology."),
+    imageUrl: z.string().url("A valid image URL is required.").min(1),
+    githubUrl: z.string().url("Please enter a valid URL.").optional().or(z.literal('')),
+    liveUrl: z.string().url("Please enter a valid URL.").optional().or(z.literal('')),
+    featured: z.preprocess((val) => val === 'on', z.boolean()),
 });
 
 function createSlug(title: string): string {
@@ -83,7 +94,7 @@ export async function handleNewPost(prevState: any, formData: FormData) {
         
         const tagsArray = tags.split(',').map(tag => tag.trim()).filter(Boolean);
 
-        const newPost = {
+        const newPost: Omit<BlogPost, '_id'> = {
             slug,
             title,
             content,
@@ -235,6 +246,140 @@ export async function deletePost(slug: string): Promise<{ success: boolean; mess
     return { success: true, message: "Post deleted successfully." };
   } catch (error: any) {
     console.error("Failed to delete post:", error);
+    return { success: false, message: error.message || "An unexpected error occurred." };
+  }
+}
+
+export async function handleNewProject(prevState: any, formData: FormData) {
+    let slug;
+    try {
+        const validatedFields = projectSchema.safeParse(Object.fromEntries(formData.entries()));
+
+        if (!validatedFields.success) {
+            return {
+                errors: validatedFields.error.flatten().fieldErrors,
+                message: "Please correct the errors and try again.",
+            };
+        }
+
+        const { title, technologies, ...rest } = validatedFields.data;
+        
+        const client = await clientPromise;
+        const db = client.db('portfolio-data');
+        
+        slug = createSlug(title);
+
+        const existingProject = await db.collection("projects").findOne({ slug });
+        if (existingProject) {
+            slug = `${slug}-${Math.random().toString(36).substring(2, 7)}`;
+        }
+        
+        const techsArray = technologies.split(',').map(tech => tech.trim()).filter(Boolean);
+
+        const newProject: Omit<Project, '_id'> = {
+            slug,
+            title,
+            technologies: techsArray,
+            ...rest,
+            'data-ai-hint': 'project technology',
+        };
+        
+        const result = await db.collection("projects").insertOne(newProject);
+        
+        if (!result.insertedId) {
+             throw new Error("Database error: Failed to create project.");
+        }
+        
+        revalidatePath("/projects");
+        revalidatePath(`/projects/${slug}`);
+        revalidatePath("/admin/projects");
+        revalidatePath("/");
+        
+    } catch (error: any) {
+        if (error.digest?.startsWith('NEXT_REDIRECT')) throw error;
+        console.error("Project creation error:", error);
+        if (error.message.includes('MONGODB_URI')) {
+            return { message: "Database connection failed.", errors: {} }
+        }
+        return { message: error.message || "An unexpected error occurred.", errors: {} };
+    }
+    
+    redirect(`/admin/projects`);
+}
+
+export async function handleUpdateProject(originalSlug: string, prevState: any, formData: FormData) {
+    let newSlug = originalSlug;
+    try {
+        const validatedFields = projectSchema.safeParse(Object.fromEntries(formData.entries()));
+        
+        if (!validatedFields.success) {
+            return {
+                errors: validatedFields.error.flatten().fieldErrors,
+                message: "Please correct the errors and try again.",
+            };
+        }
+
+        const { title, technologies, ...rest } = validatedFields.data;
+        
+        const client = await clientPromise;
+        const db = client.db('portfolio-data');
+        
+        const techsArray = technologies.split(',').map(tech => tech.trim()).filter(Boolean);
+
+        const updatedProjectData: Partial<Project> = {
+            title,
+            technologies: techsArray,
+            ...rest
+        };
+
+        const potentialNewSlug = createSlug(title);
+        if (potentialNewSlug !== originalSlug) {
+            const existingProject = await db.collection("projects").findOne({ slug: potentialNewSlug });
+            if (existingProject) {
+                return {
+                    errors: { title: ["This title creates a slug that is already in use."] },
+                    message: "Please choose a different title.",
+                };
+            }
+            updatedProjectData.slug = potentialNewSlug;
+            newSlug = potentialNewSlug;
+        }
+
+        const result = await db.collection("projects").updateOne(
+            { slug: originalSlug },
+            { $set: updatedProjectData }
+        );
+
+        if (result.matchedCount === 0) throw new Error("Project to update not found.");
+
+        revalidatePath("/projects");
+        revalidatePath("/admin/projects");
+        revalidatePath(`/projects/${originalSlug}`);
+        if(newSlug !== originalSlug) revalidatePath(`/projects/${newSlug}`);
+        revalidatePath("/");
+        
+    } catch (error: any) {
+        if (error.digest?.startsWith('NEXT_REDIRECT')) throw error;
+        console.error("Project update error:", error);
+        return { message: error.message || "An unexpected error occurred.", errors: {} };
+    }
+    
+    redirect(`/admin/projects`);
+}
+
+export async function deleteProject(slug: string): Promise<{ success: boolean; message: string }> {
+  try {
+    if (!process.env.MONGODB_URI) throw new Error("MongoDB URI not found.");
+    const client = await clientPromise;
+    const db = client.db('portfolio-data');
+    const result = await db.collection("projects").deleteOne({ slug });
+    if (result.deletedCount === 0) throw new Error("Could not find the project to delete.");
+    revalidatePath("/projects");
+    revalidatePath("/admin/projects");
+    revalidatePath("/");
+    return { success: true, message: "Project deleted successfully." };
+  } catch (error: any) {
+    console.error("Failed to delete project:", error);
     return { success: false, message: error.message || "An unexpected error occurred." };
   }
 }

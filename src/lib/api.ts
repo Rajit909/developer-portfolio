@@ -15,13 +15,39 @@ const getBaseUrl = () => {
 const API_BASE_URL = getBaseUrl();
 
 export async function getProjects(): Promise<Project[]> {
-    // This still uses local data. Can be migrated later.
-    return projects;
+    if (!process.env.MONGODB_URI) {
+        console.warn("MongoDB URI not found, falling back to static project data.");
+        return projects;
+    }
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/projects`, { cache: 'no-store' });
+        if (!res.ok) {
+            console.error(`Failed to fetch projects, status: ${res.status}. Falling back to static data.`);
+            return projects;
+        }
+        return await res.json();
+    } catch (error) {
+        console.error("Failed to fetch projects, falling back to static data:", error);
+        return projects;
+    }
 }
 
 export async function getProjectBySlug(slug: string): Promise<Project | undefined> {
-    // This still uses local data. Can be migrated later.
-    return projects.find(p => p.slug === slug);
+    if (!process.env.MONGODB_URI) {
+        console.warn("MongoDB URI not found, falling back to static project data for slug:", slug);
+        return projects.find(p => p.slug === slug);
+    }
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/projects/${slug}`, { cache: 'no-store' });
+        if (!res.ok) {
+            console.warn(`API failed to fetch project '${slug}', status: ${res.status}. Falling back to static data.`);
+            return projects.find(p => p.slug === slug);
+        }
+        return await res.json();
+    } catch (error) {
+        console.error(`Failed to fetch project with slug ${slug}, falling back to static data:`, error);
+        return projects.find(p => p.slug === slug);
+    }
 }
 
 export async function getBlogPosts(): Promise<BlogPost[]> {

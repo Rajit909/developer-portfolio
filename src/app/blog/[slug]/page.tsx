@@ -12,10 +12,15 @@ interface BlogPostPageProps {
 }
 
 export async function generateStaticParams() {
-  const posts = await getBlogPosts();
-  return posts.map((post) => ({
-    slug: post.slug,
-  }));
+  try {
+    const posts = await getBlogPosts();
+    return posts.map((post) => ({
+      slug: post.slug,
+    }));
+  } catch (error) {
+    console.error("Failed to generate static params for blog posts:", error);
+    return [];
+  }
 }
 
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
