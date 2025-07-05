@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
+import { redirect } from 'next/navigation';
 import { suggestBlogTags, SuggestBlogTagsInput } from "@/ai/flows/suggest-blog-tags";
 import clientPromise from "./mongodb";
 
@@ -49,13 +50,13 @@ function createSlug(title: string): string {
 
 export async function handleNewPost(prevState: any, formData: FormData) {
     if (!process.env.MONGODB_URI) {
-        return { message: "Database is not configured. Please set the MONGODB_URI environment variable." };
+        return { message: "Database is not configured. Please set the MONGODB_URI environment variable.", errors: {} };
     }
 
     const validatedFields = postSchema.safeParse({
         title: formData.get("title"),
         content: formData.get("content"),
-        tags: formData.get("tags"), // comes as a string
+        tags: formData.get("tags"),
     });
     
     if (!validatedFields.success) {
@@ -65,15 +66,26 @@ export async function handleNewPost(prevState: any, formData: FormData) {
         };
     }
 
+    const { title, content, tags } = validatedFields.data;
+    let finalSlug = "";
+
     try {
         const client = await clientPromise;
         const db = client.db();
         
-        const { title, content, tags } = validatedFields.data;
+        let slug = createSlug(title);
+
+        // Check if slug already exists and make it unique if necessary
+        const existingPost = await db.collection("posts").findOne({ slug });
+        if (existingPost) {
+            slug = `${slug}-${Math.random().toString(36).substring(2, 7)}`;
+        }
+        finalSlug = slug;
+        
         const tagsArray = tags.split(',').map(tag => tag.trim()).filter(Boolean);
 
         const newPost = {
-            slug: createSlug(title),
+            slug,
             title,
             content,
             tags: tagsArray,
@@ -88,18 +100,19 @@ export async function handleNewPost(prevState: any, formData: FormData) {
         const result = await db.collection("posts").insertOne(newPost);
         
         if (!result.insertedId) {
-             return { message: "Database error: Failed to create post." };
+             return { message: "Database error: Failed to create post.", errors: {} };
         }
 
-        revalidatePath("/blog"); // Revalidate blog listing page
-        revalidatePath(`/blog/${newPost.slug}`); // Revalidate the new blog post page
-
-        return { message: "Successfully created your new blog post!", errors: {} };
+        revalidatePath("/blog");
+        revalidatePath(`/blog/${slug}`);
 
     } catch (error) {
         console.error("Database insertion error:", error);
-        return { message: "An unexpected error occurred. Please try again." };
+        return { message: "An unexpected error occurred. Please try again.", errors: {} };
     }
+    
+    // If we reach here, it means success. Redirect to the new post.
+    redirect(`/blog/${finalSlug}`);
 }
 
 
