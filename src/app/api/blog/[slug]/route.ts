@@ -11,7 +11,7 @@ interface PageProps {
 export async function GET(request: Request, { params }: PageProps) {
   try {
     const client = await clientPromise;
-    const db = client.db();
+    const db = client.db('portfolio-data');
 
     const post = await db.collection('posts').findOne({ slug: params.slug });
 

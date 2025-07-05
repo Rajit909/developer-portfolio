@@ -49,6 +49,8 @@ function createSlug(title: string): string {
 }
 
 export async function handleNewPost(prevState: any, formData: FormData) {
+    let client;
+    let newPostForRedirect: { slug: string; } | undefined;
     try {
         const validatedFields = postSchema.safeParse({
             title: formData.get("title"),
@@ -65,8 +67,14 @@ export async function handleNewPost(prevState: any, formData: FormData) {
 
         const { title, content, tags } = validatedFields.data;
         
-        const client = await clientPromise;
-        const db = client.db();
+        try {
+            client = await clientPromise;
+        } catch (error) {
+            console.error("Database connection error:", error);
+            return { message: "Database connection failed. Please check your connection string in .env", errors: {} };
+        }
+        
+        const db = client.db('portfolio-data');
         
         let slug = createSlug(title);
 
@@ -90,17 +98,14 @@ export async function handleNewPost(prevState: any, formData: FormData) {
             imageUrl: 'https://placehold.co/800x600.png',
             'data-ai-hint': 'blog abstract',
         };
+        
+        newPostForRedirect = newPost;
 
         const result = await db.collection("posts").insertOne(newPost);
         
         if (!result.insertedId) {
              throw new Error("Database error: Failed to create post.");
         }
-
-        revalidatePath("/blog");
-        revalidatePath(`/blog/${slug}`);
-        
-        redirect(`/blog/${slug}`); // Throws NEXT_REDIRECT
 
     } catch (error: any) {
         // The redirect() function throws an error that needs to be handled by Next.js.
@@ -115,6 +120,12 @@ export async function handleNewPost(prevState: any, formData: FormData) {
             message: error.message || "An unexpected error occurred. Please try again.", 
             errors: {} 
         };
+    }
+
+    if(newPostForRedirect) {
+        revalidatePath("/blog");
+        revalidatePath(`/blog/${newPostForRedirect.slug}`);
+        redirect(`/blog/${newPostForRedirect.slug}`);
     }
 }
 
