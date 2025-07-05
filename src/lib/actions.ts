@@ -4,6 +4,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { redirect } from 'next/navigation';
 import { suggestBlogTags, SuggestBlogTagsInput } from "@/ai/flows/suggest-blog-tags";
+import { suggestBlogContent, SuggestBlogContentInput } from "@/ai/flows/suggest-blog-content";
 import clientPromise from "./mongodb";
 
 const contactFormSchema = z.object({
@@ -30,7 +31,7 @@ export async function handleContactForm(prevState: any, formData: FormData) {
   // For this demo, we'll just log it to the console.
   console.log("Contact form submitted:", validatedFields.data);
 
-  return { message: "Thank you for your message! I'll get back to you soon." };
+  return { message: "Thank you for your message! I'll get back to you soon.", errors: {} };
 }
 
 const postSchema = z.object({
@@ -49,8 +50,6 @@ function createSlug(title: string): string {
 }
 
 export async function handleNewPost(prevState: any, formData: FormData) {
-    let client;
-    let newPostForRedirect: { slug: string; } | undefined;
     try {
         const validatedFields = postSchema.safeParse({
             title: formData.get("title"),
@@ -67,18 +66,11 @@ export async function handleNewPost(prevState: any, formData: FormData) {
 
         const { title, content, tags } = validatedFields.data;
         
-        try {
-            client = await clientPromise;
-        } catch (error) {
-            console.error("Database connection error:", error);
-            return { message: "Database connection failed. Please check your connection string in .env", errors: {} };
-        }
-        
+        const client = await clientPromise;
         const db = client.db('portfolio-data');
         
         let slug = createSlug(title);
 
-        // Check if slug already exists and make it unique if necessary
         const existingPost = await db.collection("posts").findOne({ slug });
         if (existingPost) {
             slug = `${slug}-${Math.random().toString(36).substring(2, 7)}`;
@@ -99,33 +91,34 @@ export async function handleNewPost(prevState: any, formData: FormData) {
             'data-ai-hint': 'blog abstract',
         };
         
-        newPostForRedirect = newPost;
-
         const result = await db.collection("posts").insertOne(newPost);
         
         if (!result.insertedId) {
              throw new Error("Database error: Failed to create post.");
         }
+        
+        revalidatePath("/blog");
+        revalidatePath(`/blog/${slug}`);
+        redirect(`/blog/${slug}`);
 
     } catch (error: any) {
-        // The redirect() function throws an error that needs to be handled by Next.js.
-        // We re-throw it here to ensure it's not caught by our general error handler.
         if (error.digest?.startsWith('NEXT_REDIRECT')) {
             throw error;
         }
 
         console.error("Post creation error:", error);
-        // Provide a more specific error message to the client
+
+        if (error.message.includes('MONGODB_URI')) {
+            return {
+                message: "Database connection failed. Please check your MONGODB_URI in the .env file.", 
+                errors: {} 
+            }
+        }
+
         return { 
             message: error.message || "An unexpected error occurred. Please try again.", 
             errors: {} 
         };
-    }
-
-    if(newPostForRedirect) {
-        revalidatePath("/blog");
-        revalidatePath(`/blog/${newPostForRedirect.slug}`);
-        redirect(`/blog/${newPostForRedirect.slug}`);
     }
 }
 
@@ -142,5 +135,20 @@ export async function getTagSuggestions(content: string) {
     } catch (error) {
         console.error("Error getting tag suggestions:", error);
         return { error: "Failed to get tag suggestions. Please try again later." };
+    }
+}
+
+export async function getBlogContentSuggestion(topic: string) {
+    if (!topic || topic.trim().length < 5) {
+        return { error: "Please provide a topic of at least 5 characters." };
+    }
+
+    try {
+        const input: SuggestBlogContentInput = { topic };
+        const result = await suggestBlogContent(input);
+        return { content: result.content };
+    } catch (error) {
+        console.error("Error getting blog content suggestion:", error);
+        return { error: "Failed to get content suggestion. Please try again later." };
     }
 }

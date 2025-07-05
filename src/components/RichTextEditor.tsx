@@ -16,6 +16,7 @@ import {
   Code,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useEffect } from 'react';
 
 interface RichTextEditorProps {
   value: string;
@@ -123,6 +124,17 @@ export default function RichTextEditor({ value, onChange }: RichTextEditorProps)
       onChange(editor.getHTML(), editor.getText());
     },
   });
+
+  useEffect(() => {
+    // If the external `value` prop changes, update the editor's content.
+    // This is useful for scenarios like populating the editor with AI-generated content.
+    if (editor && value !== editor.getHTML()) {
+      // `setContent` will trigger the `onUpdate` handler, which in turn calls `onChange`.
+      // The check `value !== editor.getHTML()` prevents an infinite loop.
+      editor.commands.setContent(value, true);
+    }
+  }, [value, editor]);
+
 
   return (
     <div>

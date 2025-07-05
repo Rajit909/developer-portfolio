@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
-import { getTagSuggestions, handleNewPost } from '@/lib/actions';
+import { getTagSuggestions, handleNewPost, getBlogContentSuggestion } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, X, Loader2, ArrowRight } from 'lucide-react';
+import { Sparkles, X, Loader2, ArrowRight, Wand2 } from 'lucide-react';
 import RichTextEditor from './RichTextEditor';
 
 const initialState = {
@@ -39,14 +39,16 @@ export default function NewPostForm() {
     const [state, formAction] = useActionState(handleNewPost, initialState);
     const { toast } = useToast();
 
+    const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [textContent, setTextContent] = useState('');
     const [suggestedTags, setSuggestedTags] = useState<string[]>([]);
     const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
-    const [isSuggesting, setIsSuggesting] = useState(false);
+    const [isSuggestingTags, setIsSuggestingTags] = useState(false);
+    const [isSuggestingContent, setIsSuggestingContent] = useState(false);
     
     useEffect(() => {
-        if (state.message) {
+        if (state.message && state.errors && Object.keys(state.errors).length > 0) {
             toast({
                 title: 'Error Creating Post',
                 description: state.message,
@@ -56,9 +58,9 @@ export default function NewPostForm() {
     }, [state, toast]);
 
     const handleSuggestTags = async () => {
-        setIsSuggesting(true);
+        setIsSuggestingTags(true);
         const result = await getTagSuggestions(textContent);
-        setIsSuggesting(false);
+        setIsSuggestingTags(false);
 
         if (result.error) {
             toast({
@@ -68,6 +70,22 @@ export default function NewPostForm() {
             });
         } else if (result.tags) {
             setSuggestedTags(result.tags);
+        }
+    };
+
+    const handleSuggestContent = async () => {
+        setIsSuggestingContent(true);
+        const result = await getBlogContentSuggestion(title);
+        setIsSuggestingContent(false);
+
+        if (result.error) {
+            toast({
+                title: 'Error',
+                description: result.error,
+                variant: 'destructive',
+            });
+        } else if (result.content) {
+            setContent(result.content);
         }
     };
 
@@ -93,7 +111,38 @@ export default function NewPostForm() {
                 <CardContent className="space-y-6">
                     <div className="space-y-2">
                         <Label htmlFor="title">Title</Label>
-                        <Input id="title" name="title" />
+                         <div className="flex items-center gap-2">
+                            <Input
+                                id="title"
+                                name="title"
+                                value={title}
+                                onChange={(e) => setTitle(e.target.value)}
+                                className="flex-grow"
+                                placeholder="Your amazing blog post title"
+                            />
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={handleSuggestContent}
+                                disabled={isSuggestingContent || title.length < 5}
+                                className="shrink-0"
+                            >
+                                {isSuggestingContent ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Generating...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Wand2 className="mr-2 h-4 w-4" />
+                                        Suggest Content
+                                    </>
+                                )}
+                            </Button>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                            Write a title (at least 5 characters) to enable AI content suggestion.
+                        </p>
                         {state.errors?.title && <p className="text-sm text-destructive">{state.errors.title[0]}</p>}
                     </div>
 
@@ -114,8 +163,8 @@ export default function NewPostForm() {
                         <Label>Tags</Label>
                         <input type="hidden" name="tags" value={Array.from(selectedTags).join(', ')} />
                         <div className="space-y-2">
-                             <Button type="button" onClick={handleSuggestTags} disabled={isSuggesting || !textContent || textContent.length < 50}>
-                                {isSuggesting ? (
+                             <Button type="button" onClick={handleSuggestTags} disabled={isSuggestingTags || !textContent || textContent.length < 50}>
+                                {isSuggestingTags ? (
                                     <>
                                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                         Getting Suggestions...
