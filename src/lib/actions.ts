@@ -7,6 +7,7 @@ import { suggestBlogTags, SuggestBlogTagsInput } from "@/ai/flows/suggest-blog-t
 import { suggestBlogContent, SuggestBlogContentInput } from "@/ai/flows/suggest-blog-content";
 import { generateBlogImage, GenerateBlogImageInput } from "@/ai/flows/generate-blog-image";
 import clientPromise from "./mongodb";
+import { BlogPost } from "./types";
 
 const contactFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
@@ -39,7 +40,7 @@ const postSchema = z.object({
     title: z.string().min(5, "Title must be at least 5 characters."),
     content: z.string().min(50, "Content must be at least 50 characters."),
     tags: z.string(), // comma separated string
-    imageUrl: z.string().min(10, "A featured image is required."),
+    imageUrl: z.string().url("A valid featured image URL is required.").min(1),
 });
 
 function createSlug(title: string): string {
@@ -130,6 +131,87 @@ export async function handleNewPost(prevState: any, formData: FormData) {
         redirect(`/blog/${slug}`);
     }
 }
+
+
+export async function handleUpdatePost(originalSlug: string, prevState: any, formData: FormData) {
+    let newSlug = originalSlug;
+    try {
+        const validatedFields = postSchema.safeParse({
+            title: formData.get("title"),
+            content: formData.get("content"),
+            tags: formData.get("tags"),
+            imageUrl: formData.get("imageUrl"),
+        });
+        
+        if (!validatedFields.success) {
+            return {
+                errors: validatedFields.error.flatten().fieldErrors,
+                message: "Please correct the errors and try again.",
+            };
+        }
+
+        const { title, content, tags, imageUrl } = validatedFields.data;
+        
+        const client = await clientPromise;
+        const db = client.db('portfolio-data');
+        
+        const tagsArray = tags.split(',').map(tag => tag.trim()).filter(Boolean);
+
+        const updatedPostData: Partial<BlogPost> = {
+            title,
+            content,
+            tags: tagsArray,
+            excerpt: content.substring(0, 150).replace(/<[^>]+>/g, '') + '...',
+            imageUrl,
+            date: new Date().toISOString(), // Update the date on edit
+        };
+
+        // If title changed, slug might need to change
+        const potentialNewSlug = createSlug(title);
+        if (potentialNewSlug !== originalSlug) {
+            const existingPost = await db.collection("posts").findOne({ slug: potentialNewSlug });
+            if (existingPost) {
+                return {
+                    errors: { title: ["This title creates a slug that is already in use."] },
+                    message: "Please choose a different title.",
+                };
+            }
+            updatedPostData.slug = potentialNewSlug;
+            newSlug = potentialNewSlug;
+        }
+
+        const result = await db.collection("posts").updateOne(
+            { slug: originalSlug },
+            { $set: updatedPostData }
+        );
+
+        if (result.matchedCount === 0) {
+            throw new Error("Post to update not found.");
+        }
+
+        // Revalidate all relevant paths
+        revalidatePath("/blog");
+        revalidatePath("/admin/blog");
+        revalidatePath(`/blog/${originalSlug}`);
+        if(newSlug !== originalSlug) {
+            revalidatePath(`/blog/${newSlug}`);
+        }
+        revalidatePath("/");
+        
+    } catch (error: any) {
+        if (error.digest?.startsWith('NEXT_REDIRECT')) {
+            throw error;
+        }
+        console.error("Post update error:", error);
+        return { 
+            message: error.message || "An unexpected error occurred. Please try again.", 
+            errors: {} 
+        };
+    }
+    
+    redirect(`/blog/${newSlug}`);
+}
+
 
 export async function deletePost(slug: string): Promise<{ success: boolean; message: string }> {
   try {

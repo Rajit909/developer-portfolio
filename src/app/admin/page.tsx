@@ -48,11 +48,10 @@ export default async function AdminDashboard() {
              <Card>
                 <CardHeader>
                     <CardTitle>Next Steps</CardTitle>
-                    <CardDescription>This is the foundation of your admin panel. The next steps would be to:</CardDescription>
+                    <CardDescription>Here are the next steps to complete your admin panel:</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <ul className="list-disc space-y-2 pl-5 text-sm text-muted-foreground">
-                        <li>Implement Edit functionality for Blog Posts.</li>
                         <li>Migrate Projects and Achievements to the database.</li>
                         <li>Build management pages for Projects and Achievements (Add, Edit, Delete).</li>
                         <li>Implement functionality for the Profile and Settings pages.</li>

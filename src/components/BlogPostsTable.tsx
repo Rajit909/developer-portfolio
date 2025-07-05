@@ -90,9 +90,11 @@ export default function BlogPostsTable({ posts }: BlogPostsTableProps) {
                        <span className="sr-only">View</span>
                     </Link>
                   </Button>
-                  <Button variant="ghost" size="icon" disabled>
-                     <Edit className="h-4 w-4" />
-                     <span className="sr-only">Edit</span>
+                  <Button variant="ghost" size="icon" asChild>
+                     <Link href={`/admin/blog/${post.slug}/edit`}>
+                        <Edit className="h-4 w-4" />
+                        <span className="sr-only">Edit</span>
+                     </Link>
                   </Button>
                   
                   <AlertDialog>

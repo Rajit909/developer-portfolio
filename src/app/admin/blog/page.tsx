@@ -15,7 +15,7 @@ export default async function AdminBlogPage() {
             <p className="text-muted-foreground">Here you can create, edit, and delete your blog posts.</p>
         </div>
         <Button asChild>
-          <Link href="/blog/new">
+          <Link href="/admin/blog/new">
             <PlusCircle className="mr-2 h-4 w-4" />
             Create New Post
           </Link>
