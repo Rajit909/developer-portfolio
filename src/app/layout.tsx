@@ -1,9 +1,8 @@
 import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
 import { ThemeProvider } from '@/components/theme-provider';
+import AppContent from '@/components/AppContent';
 
 export const metadata: Metadata = {
   title: 'Rajit Kumar',
@@ -29,13 +28,9 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
         >
-            <div className="flex flex-col min-h-screen">
-            <Header />
-            <main className="flex-grow container mx-auto px-4 py-8">
+            <AppContent>
                 {children}
-            </main>
-            <Footer />
-            </div>
+            </AppContent>
             <Toaster />
         </ThemeProvider>
       </body>

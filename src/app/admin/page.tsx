@@ -2,6 +2,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Newspaper, Briefcase, Award } from 'lucide-react';
 import { getBlogPosts, getProjects, getAchievements } from '@/lib/api';
 
+export const metadata = {
+  title: 'Admin - Rajit Kumar',
+};
+
 export default async function AdminDashboard() {
     const posts = await getBlogPosts();
     const projects = await getProjects();

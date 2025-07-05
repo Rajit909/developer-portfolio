@@ -1,8 +1,8 @@
-import AdminNav from '@/components/AdminNav';
+"use client";
 
-export const metadata = {
-  title: 'Admin - Rajit Kumar',
-};
+import AdminNav from '@/components/AdminNav';
+import { SidebarProvider, Sidebar, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+
 
 export default function AdminLayout({
   children,
@@ -10,11 +10,18 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen">
-      <AdminNav />
-      <main className="flex-1 p-8 bg-muted/40">
-        {children}
-      </main>
-    </div>
+    <SidebarProvider>
+        <Sidebar>
+            <AdminNav />
+        </Sidebar>
+        <SidebarInset className="bg-muted/40">
+            <div className="p-8">
+                <div className="mb-4">
+                    <SidebarTrigger />
+                </div>
+                {children}
+            </div>
+        </SidebarInset>
+    </SidebarProvider>
   );
 }
