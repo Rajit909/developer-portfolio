@@ -46,9 +46,10 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             
             <Separator />
 
-            <div className="text-lg leading-relaxed space-y-4 whitespace-pre-wrap">
-                {post.content}
-            </div>
+            <div
+                className="prose prose-lg dark:prose-invert max-w-none"
+                dangerouslySetInnerHTML={{ __html: post.content }}
+            />
         </article>
     );
 }

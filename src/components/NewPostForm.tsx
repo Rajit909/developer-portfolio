@@ -7,11 +7,11 @@ import { useToast } from '@/hooks/use-toast';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Sparkles, X, Loader2, ArrowRight } from 'lucide-react';
+import RichTextEditor from './RichTextEditor';
 
 const initialState = {
   message: null,
@@ -39,14 +39,13 @@ export default function NewPostForm() {
     const [state, formAction] = useActionState(handleNewPost, initialState);
     const { toast } = useToast();
 
-    const [contentValue, setContentValue] = useState('');
+    const [content, setContent] = useState('');
+    const [textContent, setTextContent] = useState('');
     const [suggestedTags, setSuggestedTags] = useState<string[]>([]);
     const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
     const [isSuggesting, setIsSuggesting] = useState(false);
     
     useEffect(() => {
-        // The `handleNewPost` action redirects on success, so we only need to handle error messages here.
-        // Any state with a `message` property indicates an error occurred.
         if (state.message) {
             toast({
                 title: 'Error Creating Post',
@@ -58,7 +57,7 @@ export default function NewPostForm() {
 
     const handleSuggestTags = async () => {
         setIsSuggesting(true);
-        const result = await getTagSuggestions(contentValue);
+        const result = await getTagSuggestions(textContent);
         setIsSuggesting(false);
 
         if (result.error) {
@@ -100,7 +99,14 @@ export default function NewPostForm() {
 
                     <div className="space-y-2">
                         <Label htmlFor="content">Content</Label>
-                        <Textarea id="content" name="content" rows={10} onChange={(e) => setContentValue(e.target.value)} />
+                        <RichTextEditor
+                            value={content}
+                            onChange={(html, text) => {
+                                setContent(html);
+                                setTextContent(text);
+                            }}
+                        />
+                        <textarea name="content" value={content} className="hidden" readOnly />
                         {state.errors?.content && <p className="text-sm text-destructive">{state.errors.content[0]}</p>}
                     </div>
                     
@@ -108,7 +114,7 @@ export default function NewPostForm() {
                         <Label>Tags</Label>
                         <input type="hidden" name="tags" value={Array.from(selectedTags).join(', ')} />
                         <div className="space-y-2">
-                             <Button type="button" onClick={handleSuggestTags} disabled={isSuggesting || !contentValue || contentValue.length < 50}>
+                             <Button type="button" onClick={handleSuggestTags} disabled={isSuggesting || !textContent || textContent.length < 50}>
                                 {isSuggesting ? (
                                     <>
                                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
