@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from 'next/navigation';
 import { suggestBlogTags, SuggestBlogTagsInput } from "@/ai/flows/suggest-blog-tags";
 import { suggestBlogContent, SuggestBlogContentInput } from "@/ai/flows/suggest-blog-content";
+import { generateBlogImage, GenerateBlogImageInput } from "@/ai/flows/generate-blog-image";
 import clientPromise from "./mongodb";
 
 const contactFormSchema = z.object({
@@ -38,6 +39,7 @@ const postSchema = z.object({
     title: z.string().min(5, "Title must be at least 5 characters."),
     content: z.string().min(50, "Content must be at least 50 characters."),
     tags: z.string(), // comma separated string
+    imageUrl: z.string().min(10, "A featured image is required."),
 });
 
 function createSlug(title: string): string {
@@ -50,11 +52,13 @@ function createSlug(title: string): string {
 }
 
 export async function handleNewPost(prevState: any, formData: FormData) {
+    let slug;
     try {
         const validatedFields = postSchema.safeParse({
             title: formData.get("title"),
             content: formData.get("content"),
             tags: formData.get("tags"),
+            imageUrl: formData.get("imageUrl"),
         });
         
         if (!validatedFields.success) {
@@ -64,12 +68,12 @@ export async function handleNewPost(prevState: any, formData: FormData) {
             };
         }
 
-        const { title, content, tags } = validatedFields.data;
+        const { title, content, tags, imageUrl } = validatedFields.data;
         
         const client = await clientPromise;
         const db = client.db('portfolio-data');
         
-        let slug = createSlug(title);
+        slug = createSlug(title);
 
         const existingPost = await db.collection("posts").findOne({ slug });
         if (existingPost) {
@@ -87,7 +91,7 @@ export async function handleNewPost(prevState: any, formData: FormData) {
             author: 'Rajit Kumar',
             authorImage: 'https://placehold.co/40x40.png',
             date: new Date().toISOString(),
-            imageUrl: 'https://placehold.co/800x600.png',
+            imageUrl: imageUrl,
             'data-ai-hint': 'blog abstract',
         };
         
@@ -99,8 +103,7 @@ export async function handleNewPost(prevState: any, formData: FormData) {
         
         revalidatePath("/blog");
         revalidatePath(`/blog/${slug}`);
-        redirect(`/blog/${slug}`);
-
+        
     } catch (error: any) {
         if (error.digest?.startsWith('NEXT_REDIRECT')) {
             throw error;
@@ -119,6 +122,10 @@ export async function handleNewPost(prevState: any, formData: FormData) {
             message: error.message || "An unexpected error occurred. Please try again.", 
             errors: {} 
         };
+    }
+    
+    if (slug) {
+        redirect(`/blog/${slug}`);
     }
 }
 
@@ -150,5 +157,20 @@ export async function getBlogContentSuggestion(topic: string) {
     } catch (error) {
         console.error("Error getting blog content suggestion:", error);
         return { error: "Failed to get content suggestion. Please try again later." };
+    }
+}
+
+export async function getBlogImageSuggestion(prompt: string) {
+    if (!prompt || prompt.trim().length < 5) {
+        return { error: "Please provide a prompt of at least 5 characters." };
+    }
+
+    try {
+        const input: GenerateBlogImageInput = { prompt };
+        const result = await generateBlogImage(input);
+        return { imageUrl: result.imageUrl };
+    } catch (error) {
+        console.error("Error getting blog image suggestion:", error);
+        return { error: "Failed to get image suggestion. Please try again later." };
     }
 }

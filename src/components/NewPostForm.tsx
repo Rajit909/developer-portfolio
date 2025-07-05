@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useActionState } from 'react';
+import { useState, useEffect, useActionState, useRef } from 'react';
+import Image from 'next/image';
 import { useFormStatus } from 'react-dom';
-import { getTagSuggestions, handleNewPost, getBlogContentSuggestion } from '@/lib/actions';
+import { getTagSuggestions, handleNewPost, getBlogContentSuggestion, getBlogImageSuggestion } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 
 import { Button } from '@/components/ui/button';
@@ -10,8 +11,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, X, Loader2, ArrowRight, Wand2 } from 'lucide-react';
+import { Sparkles, X, Loader2, ArrowRight, Wand2, Upload, ImageIcon } from 'lucide-react';
 import RichTextEditor from './RichTextEditor';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from './ui/textarea';
 
 const initialState = {
   message: null,
@@ -47,6 +50,11 @@ export default function NewPostForm() {
     const [isSuggestingTags, setIsSuggestingTags] = useState(false);
     const [isSuggestingContent, setIsSuggestingContent] = useState(false);
     
+    const [imageSrc, setImageSrc] = useState<string | null>(null);
+    const [imagePrompt, setImagePrompt] = useState('');
+    const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
     useEffect(() => {
         if (state.message && state.errors && Object.keys(state.errors).length > 0) {
             toast({
@@ -86,6 +94,33 @@ export default function NewPostForm() {
             });
         } else if (result.content) {
             setContent(result.content);
+        }
+    };
+
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImageSrc(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleGenerateImage = async () => {
+        setIsGeneratingImage(true);
+        const result = await getBlogImageSuggestion(imagePrompt);
+        setIsGeneratingImage(false);
+
+        if (result.error) {
+            toast({
+                title: 'Error Generating Image',
+                description: result.error,
+                variant: 'destructive',
+            });
+        } else if (result.imageUrl) {
+            setImageSrc(result.imageUrl);
         }
     };
 
@@ -157,6 +192,81 @@ export default function NewPostForm() {
                         />
                         <textarea name="content" value={content} className="hidden" readOnly />
                         {state.errors?.content && <p className="text-sm text-destructive">{state.errors.content[0]}</p>}
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label>Featured Image</Label>
+                        <Tabs defaultValue="upload" className="w-full">
+                            <TabsList className="grid w-full grid-cols-2">
+                                <TabsTrigger value="upload">Upload</TabsTrigger>
+                                <TabsTrigger value="ai">Generate with AI</TabsTrigger>
+                            </TabsList>
+                            <TabsContent value="upload">
+                                <Card>
+                                    <CardContent className="p-4 space-y-4 text-center">
+                                        <p className="text-sm text-muted-foreground">
+                                            Upload an image. Recommended size: 1200x800 pixels.
+                                        </p>
+                                        <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
+                                            <Upload className="mr-2 h-4 w-4" />
+                                            Select Image
+                                        </Button>
+                                        <input
+                                            type="file"
+                                            ref={fileInputRef}
+                                            onChange={handleFileChange}
+                                            className="hidden"
+                                            accept="image/png, image/jpeg, image/webp"
+                                        />
+                                    </CardContent>
+                                </Card>
+                            </TabsContent>
+                             <TabsContent value="ai">
+                                 <Card>
+                                     <CardContent className="p-4 space-y-4">
+                                         <div className="space-y-2">
+                                            <Label htmlFor="image-prompt">Image Prompt</Label>
+                                            <Textarea
+                                                id="image-prompt"
+                                                placeholder="e.g., A futuristic city skyline at sunset, digital art"
+                                                value={imagePrompt}
+                                                onChange={(e) => setImagePrompt(e.target.value)}
+                                            />
+                                         </div>
+                                         <Button
+                                            type="button"
+                                            onClick={handleGenerateImage}
+                                            disabled={isGeneratingImage || imagePrompt.length < 5}
+                                        >
+                                            {isGeneratingImage ? (
+                                                <>
+                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                    Generating...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Wand2 className="mr-2 h-4 w-4" />
+                                                    Generate Image
+                                                </>
+                                            )}
+                                        </Button>
+                                     </CardContent>
+                                 </Card>
+                            </TabsContent>
+                        </Tabs>
+                        
+                        {imageSrc ? (
+                            <div className="mt-4 relative aspect-video w-full overflow-hidden rounded-lg border">
+                                <Image src={imageSrc} alt="Blog post image preview" fill className="object-cover" />
+                            </div>
+                        ) : (
+                            <div className="mt-4 flex flex-col items-center justify-center gap-2 aspect-video w-full rounded-lg border border-dashed">
+                                <ImageIcon className="h-12 w-12 text-muted-foreground" />
+                                <p className="text-sm text-muted-foreground">Image Preview</p>
+                            </div>
+                        )}
+                        <input type="hidden" name="imageUrl" value={imageSrc || ''} />
+                        {state.errors?.imageUrl && <p className="text-sm text-destructive">{state.errors.imageUrl[0]}</p>}
                     </div>
                     
                     <div className="space-y-4">
