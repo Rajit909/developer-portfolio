@@ -127,27 +127,27 @@ In this post, we'll discuss:
 
 export const achievements: Achievement[] = [
     {
-        icon: Trophy,
+        icon: 'Trophy',
         year: 2023,
         title: 'Top-Rated Developer',
         description: 'Received "Top-Rated" status on a major freelancing platform for consistent high-quality work.',
     },
     {
-        icon: Award,
+        icon: 'Award',
         year: 2022,
         title: 'Community Contribution Award',
         description: 'Recognized for significant contributions to open-source projects and developer communities.',
     },
     {
-        icon: Code,
+        icon: 'Code',
         year: '2021',
         title: 'Hackathon Winner',
         description: 'First place in the annual "Code for Good" hackathon, developing an app for local charities.',
     },
     {
-        icon: Users,
+        icon: 'Users',
         year: '2020',
         title: 'Featured Speaker',
         description: 'Invited to speak at a regional tech conference about modern frontend development techniques.',
     }
-]
+];

@@ -56,8 +56,6 @@ export default async function AdminDashboard() {
                 </CardHeader>
                 <CardContent>
                     <ul className="list-disc space-y-2 pl-5 text-sm text-muted-foreground">
-                        <li>Migrate Achievements to the database.</li>
-                        <li>Build management pages for Achievements (Add, Edit, Delete).</li>
                         <li>Implement functionality for the Profile and Settings pages.</li>
                     </ul>
                 </CardContent>

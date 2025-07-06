@@ -1,4 +1,4 @@
-import { projects, achievements, techStack, blogPosts as staticBlogPosts } from './data';
+import { projects, achievements as staticAchievements, techStack, blogPosts as staticBlogPosts } from './data';
 import type { Project, BlogPost, Achievement, Tech } from './types';
 
 // This is a temporary solution for determining the base URL.
@@ -98,7 +98,39 @@ export async function getBlogPostBySlug(slug: string): Promise<BlogPost | undefi
 }
 
 export async function getAchievements(): Promise<Achievement[]> {
-    return achievements;
+    if (!process.env.MONGODB_URI) {
+        console.warn("MongoDB URI not found, falling back to static achievement data.");
+        return staticAchievements;
+    }
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/achievements`, { cache: 'no-store' });
+        if (!res.ok) {
+            console.error(`Failed to fetch achievements, status: ${res.status}. Falling back to static data.`);
+            return staticAchievements;
+        }
+        return await res.json();
+    } catch (error) {
+        console.error("Failed to fetch achievements, falling back to static data:", error);
+        return staticAchievements;
+    }
+}
+
+export async function getAchievementById(id: string): Promise<Achievement | undefined> {
+    if (!process.env.MONGODB_URI) {
+        console.warn("MongoDB URI not found, cannot fetch achievement by ID from static data.");
+        return undefined;
+    }
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/achievements/${id}`, { cache: 'no-store' });
+        if (!res.ok) {
+            console.error(`Failed to fetch achievement by ID ${id}, status: ${res.status}.`);
+            return undefined;
+        }
+        return await res.json();
+    } catch (error) {
+        console.error(`Failed to fetch achievement with ID ${id}:`, error);
+        return undefined;
+    }
 }
 
 export async function getTechStack(): Promise<Tech[]> {

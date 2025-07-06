@@ -7,7 +7,8 @@ import { suggestBlogTags, SuggestBlogTagsInput } from "@/ai/flows/suggest-blog-t
 import { suggestBlogContent, SuggestBlogContentInput } from "@/ai/flows/suggest-blog-content";
 import { generateBlogImage, GenerateBlogImageInput } from "@/ai/flows/generate-blog-image";
 import clientPromise from "./mongodb";
-import { BlogPost, Project } from "./types";
+import { BlogPost, Project, Achievement } from "./types";
+import { ObjectId } from "mongodb";
 
 const contactFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
@@ -53,6 +54,16 @@ const projectSchema = z.object({
     liveUrl: z.string().url("Please enter a valid URL.").optional().or(z.literal('')),
     featured: z.preprocess((val) => val === 'on', z.boolean()),
 });
+
+const achievementSchema = z.object({
+    title: z.string().min(3, "Title must be at least 3 characters."),
+    description: z.string().min(10, "Description must be at least 10 characters."),
+    year: z.string().min(4, "Please enter a valid year."),
+    icon: z.enum(['Trophy', 'Award', 'Code', 'Users'], {
+        errorMap: () => ({ message: "Please select a valid icon." })
+    }),
+});
+
 
 function createSlug(title: string): string {
     return title
@@ -383,6 +394,92 @@ export async function deleteProject(slug: string): Promise<{ success: boolean; m
     return { success: false, message: error.message || "An unexpected error occurred." };
   }
 }
+
+export async function handleNewAchievement(prevState: any, formData: FormData) {
+    try {
+        const validatedFields = achievementSchema.safeParse(Object.fromEntries(formData.entries()));
+
+        if (!validatedFields.success) {
+            return {
+                errors: validatedFields.error.flatten().fieldErrors,
+                message: "Please correct the errors and try again.",
+            };
+        }
+        
+        const client = await clientPromise;
+        const db = client.db('portfolio-data');
+        
+        const result = await db.collection("achievements").insertOne(validatedFields.data);
+        
+        if (!result.insertedId) {
+             throw new Error("Database error: Failed to create achievement.");
+        }
+        
+        revalidatePath("/admin/achievements");
+        revalidatePath("/");
+        
+    } catch (error: any) {
+        if (error.digest?.startsWith('NEXT_REDIRECT')) throw error;
+        console.error("Achievement creation error:", error);
+        if (error.message.includes('MONGODB_URI')) {
+            return { message: "Database connection failed.", errors: {} }
+        }
+        return { message: error.message || "An unexpected error occurred.", errors: {} };
+    }
+    
+    redirect(`/admin/achievements`);
+}
+
+export async function handleUpdateAchievement(id: string, prevState: any, formData: FormData) {
+    try {
+        const validatedFields = achievementSchema.safeParse(Object.fromEntries(formData.entries()));
+        
+        if (!validatedFields.success) {
+            return {
+                errors: validatedFields.error.flatten().fieldErrors,
+                message: "Please correct the errors and try again.",
+            };
+        }
+        
+        const client = await clientPromise;
+        const db = client.db('portfolio-data');
+        
+        const result = await db.collection("achievements").updateOne(
+            { _id: new ObjectId(id) },
+            { $set: validatedFields.data }
+        );
+
+        if (result.matchedCount === 0) throw new Error("Achievement to update not found.");
+
+        revalidatePath("/admin/achievements");
+        revalidatePath("/");
+        
+    } catch (error: any) {
+        if (error.digest?.startsWith('NEXT_REDIRECT')) throw error;
+        console.error("Achievement update error:", error);
+        return { message: error.message || "An unexpected error occurred.", errors: {} };
+    }
+    
+    redirect(`/admin/achievements`);
+}
+
+
+export async function deleteAchievement(id: string): Promise<{ success: boolean; message: string }> {
+  try {
+    if (!process.env.MONGODB_URI) throw new Error("MongoDB URI not found.");
+    const client = await clientPromise;
+    const db = client.db('portfolio-data');
+    const result = await db.collection("achievements").deleteOne({ _id: new ObjectId(id) });
+    if (result.deletedCount === 0) throw new Error("Could not find the achievement to delete.");
+    revalidatePath("/admin/achievements");
+    revalidatePath("/");
+    return { success: true, message: "Achievement deleted successfully." };
+  } catch (error: any) {
+    console.error("Failed to delete achievement:", error);
+    return { success: false, message: error.message || "An unexpected error occurred." };
+  }
+}
+
 
 export async function getTagSuggestions(content: string) {
     if (!content || content.trim().length < 50) {

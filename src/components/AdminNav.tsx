@@ -31,7 +31,7 @@ export default function AdminNav() {
         <SidebarMenu>
           {navLinks.map((link) => {
             const isActive = pathname === link.href || (link.href !== '/admin' && pathname.startsWith(link.href));
-            const isDisabled = link.href !== '/admin' && link.href !== '/admin/blog' && link.href !== '/admin/projects';
+            const isDisabled = link.href === '/admin/profile' || link.href === '/admin/settings';
             return (
               <SidebarMenuItem key={link.href}>
                 <SidebarMenuButton

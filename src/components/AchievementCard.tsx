@@ -1,6 +1,14 @@
 import type { Achievement } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Award, Code, Trophy, Users } from 'lucide-react';
+
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+  Trophy,
+  Award,
+  Code,
+  Users,
+};
 
 interface AchievementCardProps {
   achievement: Achievement;
@@ -8,7 +16,8 @@ interface AchievementCardProps {
 }
 
 export default function AchievementCard({ achievement, index }: AchievementCardProps) {
-  const Icon = achievement.icon;
+  const Icon = iconMap[achievement.icon] ?? Trophy;
+  
   return (
     <Card 
       className="flex flex-col h-full text-center items-center transition-all duration-300 hover:shadow-xl hover:-translate-y-2 opacity-0 animate-fade-in-up"

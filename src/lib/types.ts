@@ -28,10 +28,11 @@ export type BlogPost = {
 
 
 export type Achievement = {
+    _id?: string;
     title: string;
     description: string;
     year: string | number;
-    icon: React.ComponentType<{ className?: string }>;
+    icon: string;
 };
 
 export type Tech = {
