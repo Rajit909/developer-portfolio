@@ -32,17 +32,14 @@ export default function AdminNav({ profile }: { profile: Profile }) {
         <SidebarMenu>
           {navLinks.map((link) => {
             const isActive = pathname === link.href || (link.href !== '/admin' && pathname.startsWith(link.href));
-            const isDisabled = link.href === '/admin/settings';
             return (
               <SidebarMenuItem key={link.href}>
                 <SidebarMenuButton
                   asChild
                   isActive={isActive}
-                  aria-disabled={isDisabled}
-                  className={cn(isDisabled && 'opacity-50 cursor-not-allowed')}
                   tooltip={{ children: link.label }}
                 >
-                  <Link href={isDisabled ? '#' : link.href}>
+                  <Link href={link.href}>
                     <link.icon />
                     <span>{link.label}</span>
                   </Link>

@@ -1,5 +1,4 @@
 import type { Project, BlogPost, Achievement, Tech, Profile } from './types';
-import { Award, Code, Trophy, Users, Database } from 'lucide-react';
 
 export const profileData: Profile = {
     name: 'Rajit Kumar',
@@ -13,13 +12,13 @@ export const profileData: Profile = {
 };
 
 export const techStack: Tech[] = [
-    { name: 'React', icon: undefined },
-    { name: 'Next.js', icon: undefined },
-    { name: 'TypeScript', icon: undefined },
-    { name: 'Node.js', icon: undefined },
-    { name: 'Tailwind CSS', icon: undefined },
-    { name: 'PostgreSQL', icon: Database },
-    { name: 'Genkit', icon: Code },
+    { name: 'React', icon: 'React' },
+    { name: 'Next.js', icon: 'Next.js' },
+    { name: 'TypeScript', icon: 'TypeScript' },
+    { name: 'Node.js', icon: 'Node.js' },
+    { name: 'Tailwind CSS', icon: 'Tailwind CSS' },
+    { name: 'PostgreSQL', icon: 'Database' },
+    { name: 'Genkit', icon: 'Code' },
 ];
 
 export const projects: Project[] = [

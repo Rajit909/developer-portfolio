@@ -152,5 +152,38 @@ export async function getAchievementById(id: string): Promise<Achievement | unde
 }
 
 export async function getTechStack(): Promise<Tech[]> {
-    return techStack;
+    if (!process.env.MONGODB_URI) {
+        console.warn("MongoDB URI not found, falling back to static tech stack data.");
+        return techStack;
+    }
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/tech-stack`, { cache: 'no-store' });
+        if (!res.ok) {
+            console.error(`Failed to fetch tech stack, status: ${res.status}. Falling back to static data.`);
+            return techStack;
+        }
+        return await res.json();
+    } catch (error) {
+        console.error("Failed to fetch tech stack, falling back to static data:", error);
+        return techStack;
+    }
+}
+
+
+export async function getTechById(id: string): Promise<Tech | undefined> {
+    if (!process.env.MONGODB_URI) {
+        console.warn("MongoDB URI not found, cannot fetch tech by ID from static data.");
+        return undefined;
+    }
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/tech-stack/${id}`, { cache: 'no-store' });
+        if (!res.ok) {
+            console.error(`Failed to fetch tech by ID ${id}, status: ${res.status}.`);
+            return undefined;
+        }
+        return await res.json();
+    } catch (error) {
+        console.error(`Failed to fetch tech with ID ${id}:`, error);
+        return undefined;
+    }
 }

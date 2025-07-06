@@ -56,14 +56,9 @@ export default async function AdminDashboard() {
             </div>
              <Card>
                 <CardHeader>
-                    <CardTitle>Next Steps</CardTitle>
-                    <CardDescription>Here are the next steps to complete your admin panel:</CardDescription>
+                    <CardTitle>All Systems Go!</CardTitle>
+                    <CardDescription>Your admin panel is fully configured. What will you create next?</CardDescription>
                 </CardHeader>
-                <CardContent>
-                    <ul className="list-disc space-y-2 pl-5 text-sm text-muted-foreground">
-                        <li>Implement functionality for the Settings page.</li>
-                    </ul>
-                </CardContent>
             </Card>
         </div>
     );

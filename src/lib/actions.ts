@@ -7,7 +7,7 @@ import { suggestBlogTags, SuggestBlogTagsInput } from "@/ai/flows/suggest-blog-t
 import { suggestBlogContent, SuggestBlogContentInput } from "@/ai/flows/suggest-blog-content";
 import { generateBlogImage, GenerateBlogImageInput } from "@/ai/flows/generate-blog-image";
 import clientPromise from "./mongodb";
-import { BlogPost, Project, Achievement } from "./types";
+import { BlogPost, Project, Achievement, Tech } from "./types";
 import { ObjectId } from "mongodb";
 
 const contactFormSchema = z.object({
@@ -73,6 +73,12 @@ const profileSchema = z.object({
     linkedinUrl: z.string().url("Please enter a valid URL.").optional().or(z.literal('')),
     twitterUrl: z.string().url("Please enter a valid URL.").optional().or(z.literal('')),
 });
+
+const techSchema = z.object({
+    name: z.string().min(1, "Name cannot be empty."),
+    icon: z.string().min(1, "You must select an icon."),
+});
+
 
 function createSlug(title: string): string {
     return title
@@ -536,6 +542,91 @@ export async function handleUpdateProfile(prevState: any, formData: FormData) {
     }
     
     redirect(`/admin/profile`);
+}
+
+export async function handleNewTech(prevState: any, formData: FormData) {
+    try {
+        const validatedFields = techSchema.safeParse(Object.fromEntries(formData.entries()));
+
+        if (!validatedFields.success) {
+            return {
+                errors: validatedFields.error.flatten().fieldErrors,
+                message: "Please correct the errors and try again.",
+            };
+        }
+        
+        const client = await clientPromise;
+        const db = client.db('portfolio-data');
+        
+        const result = await db.collection("techStack").insertOne(validatedFields.data);
+        
+        if (!result.insertedId) {
+             throw new Error("Database error: Failed to create tech item.");
+        }
+        
+        revalidatePath("/admin/settings");
+        revalidatePath("/");
+        
+    } catch (error: any) {
+        if (error.digest?.startsWith('NEXT_REDIRECT')) throw error;
+        console.error("Tech creation error:", error);
+        if (error.message.includes('MONGODB_URI')) {
+            return { message: "Database connection failed.", errors: {} }
+        }
+        return { message: error.message || "An unexpected error occurred.", errors: {} };
+    }
+    
+    redirect(`/admin/settings`);
+}
+
+export async function handleUpdateTech(id: string, prevState: any, formData: FormData) {
+    try {
+        const validatedFields = techSchema.safeParse(Object.fromEntries(formData.entries()));
+        
+        if (!validatedFields.success) {
+            return {
+                errors: validatedFields.error.flatten().fieldErrors,
+                message: "Please correct the errors and try again.",
+            };
+        }
+        
+        const client = await clientPromise;
+        const db = client.db('portfolio-data');
+        
+        const result = await db.collection("techStack").updateOne(
+            { _id: new ObjectId(id) },
+            { $set: validatedFields.data }
+        );
+
+        if (result.matchedCount === 0) throw new Error("Tech item to update not found.");
+
+        revalidatePath("/admin/settings");
+        revalidatePath("/");
+        
+    } catch (error: any) {
+        if (error.digest?.startsWith('NEXT_REDIRECT')) throw error;
+        console.error("Tech update error:", error);
+        return { message: error.message || "An unexpected error occurred.", errors: {} };
+    }
+    
+    redirect(`/admin/settings`);
+}
+
+
+export async function deleteTech(id: string): Promise<{ success: boolean; message: string }> {
+  try {
+    if (!process.env.MONGODB_URI) throw new Error("MongoDB URI not found.");
+    const client = await clientPromise;
+    const db = client.db('portfolio-data');
+    const result = await db.collection("techStack").deleteOne({ _id: new ObjectId(id) });
+    if (result.deletedCount === 0) throw new Error("Could not find the tech item to delete.");
+    revalidatePath("/admin/settings");
+    revalidatePath("/");
+    return { success: true, message: "Tech item deleted successfully." };
+  } catch (error: any) {
+    console.error("Failed to delete tech item:", error);
+    return { success: false, message: error.message || "An unexpected error occurred." };
+  }
 }
 
 

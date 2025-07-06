@@ -36,8 +36,9 @@ export type Achievement = {
 };
 
 export type Tech = {
+    _id?: string;
     name: string;
-    icon?: React.ComponentType<{ className?: string }>;
+    icon: string;
 };
 
 export type Profile = {
