@@ -7,6 +7,7 @@ import { Menu, Code2 } from "lucide-react";
 import { usePathname } from 'next/navigation';
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "./theme-toggle";
+import type { Profile } from "@/lib/types";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -29,13 +30,13 @@ const NavLink = ({ href, label }: { href: string; label: string }) => {
   );
 };
 
-export default function Header() {
+export default function Header({ profile }: { profile: Profile }) {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <Link href="/" className="flex items-center gap-2">
           <Code2 className="h-6 w-6 text-primary" />
-          <span className="font-headline text-lg font-bold">Rajit Kumar</span>
+          <span className="font-headline text-lg font-bold">{profile.name}</span>
         </Link>
 
         <div className="flex items-center gap-4">
@@ -59,7 +60,7 @@ export default function Header() {
                 <div className="grid gap-6 p-6">
                   <Link href="/" className="flex items-center gap-2">
                     <Code2 className="h-6 w-6 text-primary" />
-                    <span className="font-headline text-lg font-bold">Rajit Kumar</span>
+                    <span className="font-headline text-lg font-bold">{profile.name}</span>
                   </Link>
                   <nav className="grid gap-4">
                     {navLinks.map((link) => (

@@ -64,6 +64,15 @@ const achievementSchema = z.object({
     }),
 });
 
+const profileSchema = z.object({
+    name: z.string().min(2, "Name must be at least 2 characters."),
+    headline: z.string().min(10, "Headline must be at least 10 characters."),
+    bio: z.string().min(20, "Bio must be at least 20 characters."),
+    profilePictureUrl: z.string().url("Please enter a valid URL."),
+    githubUrl: z.string().url("Please enter a valid URL.").optional().or(z.literal('')),
+    linkedinUrl: z.string().url("Please enter a valid URL.").optional().or(z.literal('')),
+    twitterUrl: z.string().url("Please enter a valid URL.").optional().or(z.literal('')),
+});
 
 function createSlug(title: string): string {
     return title
@@ -96,6 +105,11 @@ export async function handleNewPost(prevState: any, formData: FormData) {
         const client = await clientPromise;
         const db = client.db('portfolio-data');
         
+        const profile = await db.collection('profile').findOne({});
+        if (!profile) {
+            throw new Error("Profile data not found. Cannot create post without an author.");
+        }
+
         slug = createSlug(title);
 
         const existingPost = await db.collection("posts").findOne({ slug });
@@ -111,8 +125,8 @@ export async function handleNewPost(prevState: any, formData: FormData) {
             content,
             tags: tagsArray,
             excerpt: content.substring(0, 150).replace(/<[^>]+>/g, '') + '...',
-            author: 'Rajit Kumar',
-            authorImage: 'https://placehold.co/40x40.png',
+            author: profile.name,
+            authorImage: profile.profilePictureUrl,
             date: new Date().toISOString(),
             imageUrl: imageUrl,
             'data-ai-hint': 'blog abstract',
@@ -176,6 +190,11 @@ export async function handleUpdatePost(originalSlug: string, prevState: any, for
         
         const client = await clientPromise;
         const db = client.db('portfolio-data');
+
+        const profile = await db.collection('profile').findOne({});
+        if (!profile) {
+            throw new Error("Profile data not found. Cannot update post without an author.");
+        }
         
         const tagsArray = tags.split(',').map(tag => tag.trim()).filter(Boolean);
 
@@ -185,7 +204,9 @@ export async function handleUpdatePost(originalSlug: string, prevState: any, for
             tags: tagsArray,
             excerpt: content.substring(0, 150).replace(/<[^>]+>/g, '') + '...',
             imageUrl,
-            date: new Date().toISOString(), // Update the date on edit
+            date: new Date().toISOString(),
+            author: profile.name,
+            authorImage: profile.profilePictureUrl,
         };
 
         // If title changed, slug might need to change
@@ -478,6 +499,43 @@ export async function deleteAchievement(id: string): Promise<{ success: boolean;
     console.error("Failed to delete achievement:", error);
     return { success: false, message: error.message || "An unexpected error occurred." };
   }
+}
+
+export async function handleUpdateProfile(prevState: any, formData: FormData) {
+    try {
+        const validatedFields = profileSchema.safeParse(Object.fromEntries(formData.entries()));
+        
+        if (!validatedFields.success) {
+            return {
+                errors: validatedFields.error.flatten().fieldErrors,
+                message: "Please correct the errors and try again.",
+            };
+        }
+        
+        const client = await clientPromise;
+        const db = client.db('portfolio-data');
+        
+        const { ...profileData } = validatedFields.data;
+
+        const result = await db.collection("profile").updateOne(
+            {}, // Update the single document in the collection
+            { $set: profileData },
+            { upsert: true } // Create it if it doesn't exist
+        );
+
+        if (result.matchedCount === 0 && result.upsertedCount === 0) {
+            throw new Error("Profile to update not found and could not be created.");
+        }
+
+        revalidatePath('/', 'layout'); // Revalidate the entire site
+        
+    } catch (error: any) {
+        if (error.digest?.startsWith('NEXT_REDIRECT')) throw error;
+        console.error("Profile update error:", error);
+        return { message: error.message || "An unexpected error occurred.", errors: {} };
+    }
+    
+    redirect(`/admin/profile`);
 }
 
 

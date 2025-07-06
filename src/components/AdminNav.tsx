@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { Home, Newspaper, Briefcase, Award, User, Settings, Code2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SidebarHeader, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter } from './ui/sidebar';
+import type { Profile } from '@/lib/types';
 
 const navLinks = [
   { href: '/admin', label: 'Dashboard', icon: Home },
@@ -15,7 +16,7 @@ const navLinks = [
   { href: '/admin/settings', label: 'Settings', icon: Settings },
 ];
 
-export default function AdminNav() {
+export default function AdminNav({ profile }: { profile: Profile }) {
   const pathname = usePathname();
 
   return (
@@ -23,7 +24,7 @@ export default function AdminNav() {
       <SidebarHeader>
         <Link href="/" className="flex items-center gap-2" target="_blank" rel="noopener noreferrer">
           <Code2 className="h-6 w-6 text-primary" />
-          <span className="font-headline text-lg font-bold">Rajit Kumar</span>
+          <span className="font-headline text-lg font-bold">{profile.name}</span>
         </Link>
         <span className="text-sm text-muted-foreground -mt-2 ml-1 group-data-[collapsible=icon]:hidden">Admin Panel</span>
       </SidebarHeader>
@@ -31,7 +32,7 @@ export default function AdminNav() {
         <SidebarMenu>
           {navLinks.map((link) => {
             const isActive = pathname === link.href || (link.href !== '/admin' && pathname.startsWith(link.href));
-            const isDisabled = link.href === '/admin/profile' || link.href === '/admin/settings';
+            const isDisabled = link.href === '/admin/settings';
             return (
               <SidebarMenuItem key={link.href}>
                 <SidebarMenuButton

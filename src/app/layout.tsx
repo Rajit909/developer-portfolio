@@ -1,19 +1,25 @@
-import type {Metadata} from 'next';
+import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 import { ThemeProvider } from '@/components/theme-provider';
 import AppContent from '@/components/AppContent';
+import { getProfile } from '@/lib/api';
 
-export const metadata: Metadata = {
-  title: 'Rajit Kumar',
-  description: 'Portfolio of Rajit Kumar, a passionate developer building modern, responsive, and user-centric web applications.',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const profile = await getProfile();
+  return {
+    title: profile.name,
+    description: profile.bio,
+  };
+}
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const profile = await getProfile();
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -28,7 +34,7 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
         >
-            <AppContent>
+            <AppContent profile={profile}>
                 {children}
             </AppContent>
             <Toaster />

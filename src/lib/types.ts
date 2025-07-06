@@ -39,3 +39,15 @@ export type Tech = {
     name: string;
     icon?: React.ComponentType<{ className?: string }>;
 };
+
+export type Profile = {
+    _id?: string;
+    name: string;
+    headline: string;
+    bio: string;
+    profilePictureUrl: string;
+    'data-ai-hint'?: string;
+    githubUrl: string;
+    linkedinUrl: string;
+    twitterUrl: string;
+};

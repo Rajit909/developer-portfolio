@@ -2,13 +2,14 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
-import { getProjects, getBlogPosts, getAchievements, getTechStack } from '@/lib/api';
+import { getProjects, getBlogPosts, getAchievements, getTechStack, getProfile } from '@/lib/api';
 import ProjectCard from '@/components/ProjectCard';
 import BlogCard from '@/components/BlogCard';
 import AchievementCard from '@/components/AchievementCard';
 import TechStack from '@/components/TechStack';
 
 export default async function Home() {
+  const profile = await getProfile();
   const allProjects = await getProjects();
   const allBlogPosts = await getBlogPosts();
   const allAchievements = await getAchievements();
@@ -24,10 +25,10 @@ export default async function Home() {
         <div className="container mx-auto grid md:grid-cols-[2fr,1fr] gap-12 items-center text-center md:text-left">
           <div className="space-y-6">
             <h1 className="font-headline text-4xl md:text-6xl font-bold tracking-tight">
-              Crafting Digital Experiences
+              {profile.headline}
             </h1>
             <p className="max-w-2xl mx-auto md:mx-0 text-lg text-muted-foreground">
-              A passionate developer building modern, responsive, and user-centric web applications. Explore my work and thoughts on technology.
+              {profile.bio}
             </p>
             <div className="flex justify-center md:justify-start gap-4">
               <Button asChild size="lg">
@@ -43,12 +44,12 @@ export default async function Home() {
           </div>
           <div className="relative mx-auto w-48 h-48 md:w-64 md:h-64">
             <Image
-              src="https://placehold.co/300x300.png"
-              alt="Profile Picture"
+              src={profile.profilePictureUrl}
+              alt={profile.name}
               width={300}
               height={300}
               className="rounded-full object-cover shadow-lg border-4 border-card"
-              data-ai-hint="profile photo"
+              data-ai-hint={profile['data-ai-hint']}
               priority
             />
           </div>

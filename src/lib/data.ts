@@ -1,5 +1,16 @@
-import type { Project, BlogPost, Achievement, Tech } from './types';
+import type { Project, BlogPost, Achievement, Tech, Profile } from './types';
 import { Award, Code, Trophy, Users, Database } from 'lucide-react';
+
+export const profileData: Profile = {
+    name: 'Rajit Kumar',
+    headline: 'Crafting Digital Experiences',
+    bio: 'A passionate developer building modern, responsive, and user-centric web applications. Explore my work and thoughts on technology.',
+    profilePictureUrl: 'https://placehold.co/300x300.png',
+    'data-ai-hint': 'profile photo',
+    githubUrl: '#',
+    linkedinUrl: '#',
+    twitterUrl: '#',
+};
 
 export const techStack: Tech[] = [
     { name: 'React', icon: undefined },

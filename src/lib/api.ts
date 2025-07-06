@@ -1,5 +1,5 @@
-import { projects, achievements as staticAchievements, techStack, blogPosts as staticBlogPosts } from './data';
-import type { Project, BlogPost, Achievement, Tech } from './types';
+import { projects, achievements as staticAchievements, techStack, blogPosts as staticBlogPosts, profileData } from './data';
+import type { Project, BlogPost, Achievement, Tech, Profile } from './types';
 
 // This is a temporary solution for determining the base URL.
 // In a real production environment, you should use environment variables
@@ -13,6 +13,24 @@ const getBaseUrl = () => {
 };
 
 const API_BASE_URL = getBaseUrl();
+
+export async function getProfile(): Promise<Profile> {
+    if (!process.env.MONGODB_URI) {
+        console.warn("MongoDB URI not found, falling back to static profile data.");
+        return profileData;
+    }
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/profile`, { cache: 'no-store' });
+        if (!res.ok) {
+            console.error(`Failed to fetch profile, status: ${res.status}. Falling back to static data.`);
+            return profileData;
+        }
+        return await res.json();
+    } catch (error) {
+        console.error("Failed to fetch profile, falling back to static data:", error);
+        return profileData;
+    }
+}
 
 export async function getProjects(): Promise<Project[]> {
     if (!process.env.MONGODB_URI) {

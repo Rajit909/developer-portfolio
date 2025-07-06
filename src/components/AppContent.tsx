@@ -4,8 +4,9 @@
 import { usePathname } from 'next/navigation';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import type { Profile } from '@/lib/types';
 
-export default function AppContent({ children }: { children: React.ReactNode }) {
+export default function AppContent({ children, profile }: { children: React.ReactNode, profile: Profile }) {
     const pathname = usePathname();
     const isAdminPage = pathname.startsWith('/admin');
 
@@ -15,11 +16,11 @@ export default function AppContent({ children }: { children: React.ReactNode }) 
 
     return (
         <div className="flex flex-col min-h-screen">
-            <Header />
+            <Header profile={profile} />
             <main className="flex-grow container mx-auto px-4 py-8">
                 {children}
             </main>
-            <Footer />
+            <Footer profile={profile} />
         </div>
     );
 }

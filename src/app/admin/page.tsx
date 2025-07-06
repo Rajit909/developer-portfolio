@@ -1,12 +1,17 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Newspaper, Briefcase, Award } from 'lucide-react';
-import { getBlogPosts, getProjects, getAchievements } from '@/lib/api';
+import { getBlogPosts, getProjects, getAchievements, getProfile } from '@/lib/api';
+import type { Metadata } from 'next';
 
-export const metadata = {
-  title: 'Admin - Rajit Kumar',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const profile = await getProfile();
+  return {
+    title: `Admin - ${profile.name}`,
+  };
+}
 
 export default async function AdminDashboard() {
+    const profile = await getProfile();
     const posts = await getBlogPosts();
     const projects = await getProjects();
     const achievements = await getAchievements();
@@ -15,7 +20,7 @@ export default async function AdminDashboard() {
         <div className="space-y-8">
             <div>
                 <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-                <p className="text-muted-foreground">Welcome back, Rajit! Here's an overview of your portfolio.</p>
+                <p className="text-muted-foreground">Welcome back, {profile.name.split(' ')[0]}! Here's an overview of your portfolio.</p>
             </div>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 <Card>
@@ -56,7 +61,7 @@ export default async function AdminDashboard() {
                 </CardHeader>
                 <CardContent>
                     <ul className="list-disc space-y-2 pl-5 text-sm text-muted-foreground">
-                        <li>Implement functionality for the Profile and Settings pages.</li>
+                        <li>Implement functionality for the Settings page.</li>
                     </ul>
                 </CardContent>
             </Card>
