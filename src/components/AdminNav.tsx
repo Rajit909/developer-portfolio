@@ -2,10 +2,13 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Newspaper, Briefcase, Award, User, Settings, Code2 } from 'lucide-react';
+import { Home, Newspaper, Briefcase, Award, User, Settings, Code2, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SidebarHeader, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter } from './ui/sidebar';
-import type { Profile } from '@/lib/types';
+import type { Session } from 'next-auth';
+import { signOut } from 'next-auth/react';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+
 
 const navLinks = [
   { href: '/admin', label: 'Dashboard', icon: Home },
@@ -16,17 +19,23 @@ const navLinks = [
   { href: '/admin/settings', label: 'Settings', icon: Settings },
 ];
 
-export default function AdminNav({ profile }: { profile: Profile }) {
+export default function AdminNav({ session }: { session: Session }) {
   const pathname = usePathname();
+  const userInitial = session.user?.name?.charAt(0).toUpperCase() ?? 'A';
 
   return (
     <>
       <SidebarHeader>
-        <Link href="/" className="flex items-center gap-2" target="_blank" rel="noopener noreferrer">
-          <Code2 className="h-6 w-6 text-primary" />
-          <span className="font-headline text-lg font-bold">{profile.name}</span>
-        </Link>
-        <span className="text-sm text-muted-foreground -mt-2 ml-1 group-data-[collapsible=icon]:hidden">Admin Panel</span>
+         <div className="flex items-center gap-2">
+            <Avatar className="h-8 w-8">
+                <AvatarImage src={session.user?.image ?? ''} alt={session.user?.name ?? ''} />
+                <AvatarFallback>{userInitial}</AvatarFallback>
+            </Avatar>
+            <div className="flex flex-col">
+                <span className="font-semibold text-sm group-data-[collapsible=icon]:hidden">{session.user?.name}</span>
+                <span className="text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">{session.user?.email}</span>
+            </div>
+        </div>
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>
@@ -54,9 +63,15 @@ export default function AdminNav({ profile }: { profile: Profile }) {
             <SidebarMenuItem>
                 <SidebarMenuButton asChild tooltip={{children: 'View Live Site'}}>
                     <Link href="/" target="_blank" rel="noopener noreferrer">
-                        <Settings />
+                        <Code2 />
                         <span>View Live Site</span>
                     </Link>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+                <SidebarMenuButton onClick={() => signOut({ callbackUrl: '/' })} tooltip={{children: 'Sign Out'}}>
+                    <LogOut />
+                    <span>Sign Out</span>
                 </SidebarMenuButton>
             </SidebarMenuItem>
         </SidebarMenu>
