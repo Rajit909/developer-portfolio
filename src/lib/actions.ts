@@ -1,3 +1,4 @@
+
 "use server";
 
 import { z } from "zod";
@@ -9,12 +10,24 @@ import { generateBlogImage, GenerateBlogImageInput } from "@/ai/flows/generate-b
 import clientPromise from "./mongodb";
 import { BlogPost, Project, Achievement, Tech } from "./types";
 import { ObjectId } from "mongodb";
+import { findUserByEmail, createUser } from "./user";
 
 const contactFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
   email: z.string().email("Please enter a valid email address."),
   message: z.string().min(10, "Message must be at least 10 characters."),
 });
+
+const signupSchema = z.object({
+    name: z.string().min(2, "Name must be at least 2 characters."),
+    email: z.string().email("Please enter a valid email address."),
+    password: z.string().min(8, "Password must be at least 8 characters."),
+    confirmPassword: z.string(),
+}).refine(data => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+});
+
 
 export async function handleContactForm(prevState: any, formData: FormData) {
   const validatedFields = contactFormSchema.safeParse({
@@ -36,6 +49,42 @@ export async function handleContactForm(prevState: any, formData: FormData) {
 
   return { message: "Thank you for your message! I'll get back to you soon.", errors: {} };
 }
+
+export async function handleSignup(prevState: any, formData: FormData) {
+    try {
+        const validatedFields = signupSchema.safeParse(Object.fromEntries(formData.entries()));
+
+        if (!validatedFields.success) {
+            return {
+                errors: validatedFields.error.flatten().fieldErrors,
+                message: "Please correct the errors and try again.",
+            };
+        }
+
+        const { name, email, password } = validatedFields.data;
+
+        const existingUser = await findUserByEmail(email);
+
+        if (existingUser) {
+            return {
+                errors: { email: ["A user with this email already exists."] },
+                message: "A user with this email already exists.",
+            };
+        }
+
+        await createUser({ name, email, password });
+
+    } catch (error: any) {
+        if (error.digest?.startsWith('NEXT_REDIRECT')) {
+            throw error;
+        }
+        console.error("Signup error:", error);
+        return { message: error.message || "An unexpected error occurred.", errors: {} };
+    }
+
+    redirect('/login?signup=success');
+}
+
 
 const postSchema = z.object({
     title: z.string().min(5, "Title must be at least 5 characters."),

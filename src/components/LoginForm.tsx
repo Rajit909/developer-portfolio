@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -9,16 +10,28 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import Link from 'next/link';
 
 export default function LoginForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { toast } = useToast();
-    const [email, setEmail] = useState('admin@example.com');
-    const [password, setPassword] = useState('password');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     
     const callbackUrl = searchParams.get('callbackUrl') || '/admin';
+
+    useEffect(() => {
+        if (searchParams.get('signup') === 'success') {
+            toast({
+                title: 'Account Created!',
+                description: "You can now sign in with your new credentials.",
+            });
+            // Using window.history.replaceState to avoid re-rendering with router.replace
+            window.history.replaceState(null, '', '/login');
+        }
+    }, [searchParams, toast]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -54,7 +67,7 @@ export default function LoginForm() {
                 <CardHeader className="text-center">
                     <CardTitle className="text-2xl font-headline">Admin Login</CardTitle>
                     <CardDescription>
-                        Use <span className="font-mono">admin@example.com</span> and <span className="font-mono">password</span> to sign in.
+                        Enter your credentials to access the admin panel.
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -82,7 +95,7 @@ export default function LoginForm() {
                         />
                     </div>
                 </CardContent>
-                <CardFooter>
+                <CardFooter className="flex-col items-center justify-center gap-4">
                     <Button className="w-full" type="submit" disabled={isLoading}>
                          {isLoading ? (
                             <>
@@ -92,6 +105,12 @@ export default function LoginForm() {
                             "Sign In"
                         )}
                     </Button>
+                    <p className="text-sm text-muted-foreground">
+                        Don&apos;t have an account?{" "}
+                        <Link href="/signup" className="font-semibold text-primary hover:underline">
+                            Sign Up
+                        </Link>
+                    </p>
                 </CardFooter>
             </form>
         </Card>

@@ -1,3 +1,4 @@
+
 import type { NextAuthOptions, User as NextAuthUser } from 'next-auth';
 import { MongoDBAdapter } from '@next-auth/mongodb-adapter';
 import CredentialsProvider from 'next-auth/providers/credentials';
@@ -21,20 +22,14 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        let user = await findUserByEmail(credentials.email);
+        const user = await findUserByEmail(credentials.email);
 
-        // For this demo, if no user exists, create one on first login attempt.
-        if (!user) {
-          console.log(`User ${credentials.email} not found. Creating new user.`);
-          user = await createUser({
-            email: credentials.email,
-            password: credentials.password,
-            name: 'Admin User',
-          });
-          console.log(`User ${credentials.email} created successfully.`);
+        if (!user || !user.password) {
+          // User not found or doesn't have a password (e.g., OAuth account)
+          return null;
         }
         
-        const isPasswordValid = await compare(credentials.password, user.password as string);
+        const isPasswordValid = await compare(credentials.password, user.password);
 
         if (!isPasswordValid) {
           console.log(`Invalid password for user ${credentials.email}`);
