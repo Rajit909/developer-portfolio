@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useActionState, useRef } from 'react';
@@ -61,7 +62,7 @@ export default function EditPostForm({ post }: EditPostFormProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
-        if (state.message && state.errors && Object.keys(state.errors).length > 0) {
+        if (state.message) {
             toast({
                 title: 'Error Updating Post',
                 description: state.message,

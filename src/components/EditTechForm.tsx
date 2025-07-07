@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useActionState, useEffect } from 'react';
@@ -45,13 +46,11 @@ export default function EditTechForm({ tech }: EditTechFormProps) {
 
     useEffect(() => {
         if (state.message) {
-            if(state.errors && Object.keys(state.errors).length > 0){
-                toast({
-                    title: 'Error Updating Technology',
-                    description: state.message,
-                    variant: 'destructive',
-                });
-            }
+            toast({
+                title: 'Error Updating Technology',
+                description: state.message,
+                variant: 'destructive',
+            });
         }
     }, [state, toast]);
 

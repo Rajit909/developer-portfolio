@@ -37,7 +37,7 @@ export default function SignupForm() {
     const { toast } = useToast();
 
     useEffect(() => {
-        if (state.message && state.errors && Object.keys(state.errors).length > 0) {
+        if (state.message) {
             toast({
                 title: 'Signup Failed',
                 description: state.message,

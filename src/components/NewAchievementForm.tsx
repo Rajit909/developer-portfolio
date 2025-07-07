@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useActionState, useEffect } from 'react';
@@ -48,13 +49,11 @@ export default function NewAchievementForm() {
 
     useEffect(() => {
         if (state.message) {
-            if(state.errors && Object.keys(state.errors).length > 0){
-                toast({
-                    title: 'Error Creating Achievement',
-                    description: state.message,
-                    variant: 'destructive',
-                });
-            }
+            toast({
+                title: 'Error Creating Achievement',
+                description: state.message,
+                variant: 'destructive',
+            });
         }
     }, [state, toast]);
 

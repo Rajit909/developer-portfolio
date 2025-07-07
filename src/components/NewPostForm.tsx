@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useActionState, useRef } from 'react';
@@ -56,7 +57,7 @@ export default function NewPostForm() {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
-        if (state.message && state.errors && Object.keys(state.errors).length > 0) {
+        if (state.message) {
             toast({
                 title: 'Error Creating Post',
                 description: state.message,

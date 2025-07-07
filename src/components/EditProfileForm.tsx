@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useActionState, useEffect } from 'react';
@@ -44,18 +45,11 @@ export default function EditProfileForm({ profile }: EditProfileFormProps) {
 
     useEffect(() => {
         if (state.message) {
-            if(state.errors && Object.keys(state.errors).length > 0){
-                toast({
-                    title: 'Error Updating Profile',
-                    description: state.message,
-                    variant: 'destructive',
-                });
-            } else {
-                 toast({
-                    title: 'Profile Updated!',
-                    description: 'Your changes have been saved successfully.',
-                });
-            }
+            toast({
+                title: 'Error Updating Profile',
+                description: state.message,
+                variant: 'destructive',
+            });
         }
     }, [state, toast]);
 
