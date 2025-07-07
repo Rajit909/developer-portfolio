@@ -24,23 +24,23 @@ export const authOptions: NextAuthOptions = {
 
         const user = await findUserByEmail(credentials.email);
 
+        // Check if user exists and has a password (i.e., not an OAuth account)
         if (!user || !user.password) {
-          // User not found or doesn't have a password (e.g., OAuth account)
           return null;
         }
         
         const isPasswordValid = await compare(credentials.password, user.password);
 
         if (!isPasswordValid) {
-          console.log(`Invalid password for user ${credentials.email}`);
-          return null;
+          return null; // For security, don't specify why login failed
         }
 
+        // Return the user object for NextAuth to use
         return {
           id: user._id.toString(),
           email: user.email,
           name: user.name,
-          image: user.image
+          image: user.image,
         };
       },
     }),
@@ -52,7 +52,21 @@ export const authOptions: NextAuthOptions = {
     signIn: '/login',
   },
   callbacks: {
+    // This callback is called whenever a JWT is created (i.e., on sign in).
+    async jwt({ token, user }) {
+      // The `user` object is only passed on the first sign-in.
+      // We persist the user ID and other details to the token.
+      if (user) {
+        token.id = user.id;
+        token.name = user.name;
+        token.email = user.email;
+        token.picture = user.image;
+      }
+      return token;
+    },
+    // This callback is called whenever a session is checked.
     async session({ session, token }) {
+      // We pass the data from the token to the session object.
       if (token && session.user) {
         session.user.id = token.id as string;
         session.user.name = token.name;
@@ -60,12 +74,6 @@ export const authOptions: NextAuthOptions = {
         session.user.image = token.picture;
       }
       return session;
-    },
-    async jwt({ token, user }) {
-        if (user) {
-            token.id = user.id;
-        }
-        return token;
     },
   },
   secret: process.env.NEXTAUTH_SECRET,
