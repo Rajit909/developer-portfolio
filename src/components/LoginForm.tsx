@@ -19,39 +19,41 @@ export default function LoginForm() {
     const [isLoading, setIsLoading] = useState(false);
     
     const callbackUrl = searchParams.get('callbackUrl') || '/admin';
-    const error = searchParams.get('error');
-
+    
+    // This effect handles showing a success toast after signing up.
     useEffect(() => {
         if (searchParams.get('signup') === 'success') {
             toast({
                 title: 'Account Created!',
                 description: "You can now sign in with your new credentials.",
             });
-            window.history.replaceState(null, '', '/login');
-        }
-        if (error) {
-            toast({
-                title: 'Login Failed',
-                description: 'Invalid email or password. Please try again.',
-                variant: 'destructive',
-            });
-             // Use router.replace to remove the error from the URL without reloading
+            // Use router.replace to remove the query param from the URL without reloading
             router.replace('/login', { scroll: false });
         }
-    }, [searchParams, error, router, toast]);
+    }, [searchParams, router, toast]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
 
-        await signIn('credentials', {
+        const result = await signIn('credentials', {
             email: (e.currentTarget.elements.namedItem('email') as HTMLInputElement).value,
             password: (e.currentTarget.elements.namedItem('password') as HTMLInputElement).value,
-            callbackUrl,
+            redirect: false, // Important: we will handle the redirect manually
         });
-        
-        // This part might not be reached if signIn successfully redirects
+
         setIsLoading(false);
+
+        if (result?.error) {
+            toast({
+                title: 'Login Failed',
+                description: 'Invalid email or password. Please try again.',
+                variant: 'destructive',
+            });
+        } else if (result?.ok) {
+            // On success, NextAuth sets the session cookie and we can redirect
+            router.push(callbackUrl);
+        }
     };
 
     return (

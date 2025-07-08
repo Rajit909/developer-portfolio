@@ -1,7 +1,6 @@
 
 import type { NextAuthOptions, User as NextAuthUser } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import clientPromise from './mongodb';
 import { findUserByEmail } from './user';
 import { compare } from 'bcryptjs';
 
@@ -14,30 +13,35 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials.password) {
-          return null;
+        try {
+            if (!credentials?.email || !credentials.password) {
+                return null;
+            }
+
+            const user = await findUserByEmail(credentials.email);
+
+            if (!user || !user.password) {
+                return null;
+            }
+            
+            const isPasswordValid = await compare(credentials.password, user.password);
+
+            if (!isPasswordValid) {
+                return null;
+            }
+
+            // Return the user object for NextAuth to use
+            return {
+              id: user._id.toString(),
+              email: user.email,
+              name: user.name,
+              image: user.image,
+            };
+        } catch (error) {
+            console.error("Authorization error:", error);
+            // Return null to indicate an authentication failure
+            return null;
         }
-
-        const user = await findUserByEmail(credentials.email);
-
-        // Check if user exists and has a password (i.e., not an OAuth account)
-        if (!user || !user.password) {
-          return null;
-        }
-        
-        const isPasswordValid = await compare(credentials.password, user.password);
-
-        if (!isPasswordValid) {
-          return null; // For security, don't specify why login failed
-        }
-
-        // Return the user object for NextAuth to use
-        return {
-          id: user._id.toString(),
-          email: user.email,
-          name: user.name,
-          image: user.image,
-        };
       },
     }),
   ],
