@@ -1,39 +1,30 @@
 import { redirect } from 'next/navigation';
 import AdminLayoutClient from './AdminLayoutClient';
 import { getProfile } from '@/lib/api';
-import { cookies } from 'next/headers';
-import * as jose from 'jose';
+import { headers } from 'next/headers';
 import type { User } from '@/lib/user';
 
-async function getUserFromToken(): Promise<(User & { id: string })> {
-    const token = cookies().get('auth_token')?.value;
+// This function now reads user data securely passed from the middleware
+// via request headers. It no longer needs to verify the token itself.
+async function getUserFromHeaders(): Promise<(User & { id: string }) | null> {
+    const headersList = headers();
+    
+    const userId = headersList.get('x-user-id');
+    const userName = headersList.get('x-user-name');
+    const userEmail = headersList.get('x-user-email');
 
-    // This should not happen if middleware is working correctly.
-    if (!token) {
-        throw new Error('Authentication token not found. Middleware might be misconfigured.');
+    if (!userId || !userName || !userEmail) {
+        // This case should ideally not be reached if the middleware is working
+        // correctly, as it would have redirected unauthenticated users.
+        return null;
     }
 
-    if (!process.env.JWT_SECRET) {
-        throw new Error('JWT_SECRET environment variable is not set.');
-    }
-
-    try {
-        const secret = new TextEncoder().encode(process.env.JWT_SECRET);
-        const { payload } = await jose.jwtVerify(token, secret);
-        
-        // The payload from our JWT should match this structure
-        return {
-            _id: payload.id as any,
-            id: payload.id as string,
-            name: payload.name as string,
-            email: payload.email as string,
-        };
-
-    } catch (error) {
-        console.error("Failed to verify token in AdminLayout:", error);
-        // This is an unexpected error because middleware should have caught invalid tokens.
-        throw new Error('Failed to verify authentication token.');
-    }
+    return {
+        _id: userId as any, // Not a real ObjectId, but satisfies the type for the client
+        id: userId,
+        name: userName,
+        email: userEmail,
+    };
 }
 
 
@@ -42,10 +33,16 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // If we've reached this layout, the middleware has already validated the token.
-  // We can now safely get the user data from it.
-  // The redirect logic is now solely in middleware.ts.
-  const user = await getUserFromToken();
+  // By the time this layout renders, the middleware has already validated
+  // the user's token. We can now safely get the user data from the headers.
+  const user = await getUserFromHeaders();
+
+  // If for some reason the user data isn't present in the headers,
+  // it indicates a server or middleware configuration error.
+  // We redirect to login to be safe, although the middleware should have already done this.
+  if (!user) {
+    redirect('/login');
+  }
 
   const profile = await getProfile();
   
