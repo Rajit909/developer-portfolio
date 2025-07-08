@@ -1,3 +1,4 @@
+
 import { redirect } from 'next/navigation';
 import AdminLayoutClient from './AdminLayoutClient';
 import { getProfile } from '@/lib/api';
@@ -35,13 +36,16 @@ export default async function AdminLayout({
 }) {
   // By the time this layout renders, the middleware has already validated
   // the user's token. We can now safely get the user data from the headers.
+  // The middleware is the single source of truth for authentication.
   const user = await getUserFromHeaders();
 
-  // If for some reason the user data isn't present in the headers,
-  // it indicates a server or middleware configuration error.
-  // We redirect to login to be safe, although the middleware should have already done this.
+  // If the user is null here, it means the middleware is misconfigured or failed,
+  // but we will not redirect from the layout to prevent loops. The middleware handles redirects.
   if (!user) {
-    redirect('/login');
+    // This will prevent rendering the admin panel if headers are missing,
+    // but relies on the middleware to have already redirected.
+    // In a production scenario, you might want to throw an error here.
+    return null;
   }
 
   const profile = await getProfile();
