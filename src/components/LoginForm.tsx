@@ -1,7 +1,8 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useActionState, useEffect } from 'react';
+import { useFormStatus } from 'react-dom';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,14 +11,32 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { handleLogin } from '@/lib/actions';
+
+const initialState = {
+  message: null,
+};
+
+function SubmitButton() {
+    const { pending } = useFormStatus();
+    return (
+        <Button className="w-full" type="submit" disabled={pending}>
+             {pending ? (
+                <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Signing in...
+                </>
+            ) : (
+                "Sign In"
+            )}
+        </Button>
+    );
+}
 
 export default function LoginForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
+    const [state, formAction] = useActionState(handleLogin, initialState);
     const { toast } = useToast();
-    const [isLoading, setIsLoading] = useState(false);
-    
-    const callbackUrl = searchParams.get('callbackUrl') || '/admin';
     
     useEffect(() => {
         if (searchParams.get('signup') === 'success') {
@@ -25,57 +44,23 @@ export default function LoginForm() {
                 title: 'Account Created!',
                 description: "You can now sign in with your new credentials.",
             });
-            // Use router.replace to remove the query param from the URL without reloading
             router.replace('/login', { scroll: false });
         }
     }, [searchParams, router, toast]);
 
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        setIsLoading(true);
-
-        const formData = new FormData(e.currentTarget);
-        const email = formData.get('email') as string;
-        const password = formData.get('password') as string;
-
-        try {
-            const res = await fetch('/api/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password }),
-            });
-
-            if (res.ok) {
-                toast({
-                    title: 'Login Successful',
-                    description: "Redirecting to the admin panel...",
-                });
-                router.refresh(); // Force a refresh to ensure the cookie is set before navigation
-                router.push(callbackUrl);
-                // We don't set isLoading to false on success because the page is navigating away.
-            } else {
-                const data = await res.json();
-                toast({
-                    title: 'Login Failed',
-                    description: data.message || 'Invalid email or password. Please try again.',
-                    variant: 'destructive',
-                });
-                setIsLoading(false);
-            }
-        } catch (error) {
-            console.error('Login error:', error);
+    useEffect(() => {
+        if (state?.message) {
             toast({
                 title: 'Login Failed',
-                description: 'An internal server error occurred. Please try again.',
+                description: state.message,
                 variant: 'destructive',
             });
-            setIsLoading(false);
         }
-    };
+    }, [state, toast]);
 
     return (
         <Card className="w-full max-w-sm">
-            <form onSubmit={handleSubmit}>
+            <form action={formAction}>
                 <CardHeader className="text-center">
                     <CardTitle className="text-2xl font-headline">Admin Login</CardTitle>
                     <CardDescription>
@@ -91,7 +76,6 @@ export default function LoginForm() {
                             type="email"
                             placeholder="admin@example.com"
                             required
-                            disabled={isLoading}
                         />
                     </div>
                     <div className="space-y-2">
@@ -101,20 +85,11 @@ export default function LoginForm() {
                             name="password"
                             type="password"
                             required
-                            disabled={isLoading}
                         />
                     </div>
                 </CardContent>
                 <CardFooter className="flex-col items-center justify-center gap-4">
-                    <Button className="w-full" type="submit" disabled={isLoading}>
-                         {isLoading ? (
-                            <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Signing in...
-                            </>
-                        ) : (
-                            "Sign In"
-                        )}
-                    </Button>
+                    <SubmitButton />
                     <p className="text-sm text-muted-foreground">
                         Don&apos;t have an account?{" "}
                         <Link href="/signup" className="font-semibold text-primary hover:underline">

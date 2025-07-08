@@ -11,11 +11,19 @@ import clientPromise from "./mongodb";
 import { BlogPost, Project, Achievement, Tech } from "./types";
 import { ObjectId } from "mongodb";
 import { findUserByEmail, createUser } from "./user";
+import { compare } from 'bcryptjs';
+import * as jose from 'jose';
+import { cookies } from 'next/headers';
 
 const contactFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
   email: z.string().email("Please enter a valid email address."),
   message: z.string().min(10, "Message must be at least 10 characters."),
+});
+
+const loginSchema = z.object({
+    email: z.string().email("Please enter a valid email address."),
+    password: z.string().min(1, "Password cannot be empty."),
 });
 
 const signupSchema = z.object({
@@ -49,6 +57,63 @@ export async function handleContactForm(prevState: any, formData: FormData) {
 
   return { message: "Thank you for your message! I'll get back to you soon.", errors: {} };
 }
+
+export async function handleLogin(prevState: any, formData: FormData) {
+    try {
+        const validatedFields = loginSchema.safeParse(Object.fromEntries(formData.entries()));
+
+        if (!validatedFields.success) {
+            return {
+                message: "Invalid email or password.",
+            };
+        }
+
+        const { email, password } = validatedFields.data;
+        const user = await findUserByEmail(email);
+
+        if (!user || !user.password) {
+            return { message: "Invalid email or password." };
+        }
+
+        const isPasswordValid = await compare(password, user.password);
+
+        if (!isPasswordValid) {
+            return { message: "Invalid email or password." };
+        }
+
+        const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
+        const alg = 'HS256';
+
+        const token = await new jose.SignJWT({ 
+            id: user._id.toString(),
+            email: user.email,
+            name: user.name,
+        })
+        .setProtectedHeader({ alg })
+        .setExpirationTime('24h')
+        .setIssuedAt()
+        .setSubject(user._id.toString())
+        .sign(secret);
+          
+        cookies().set('auth_token', token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          path: '/',
+          maxAge: 60 * 60 * 24, // 1 day
+        });
+
+    } catch (error: any) {
+        if (error.digest?.startsWith('NEXT_REDIRECT')) {
+            throw error;
+        }
+        console.error("Login error:", error);
+        return { message: "An internal server error occurred." };
+    }
+    
+    redirect('/admin');
+}
+
 
 export async function handleSignup(prevState: any, formData: FormData) {
     try {
