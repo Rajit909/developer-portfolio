@@ -5,15 +5,20 @@ import { cookies } from 'next/headers';
 import * as jose from 'jose';
 import type { User } from '@/lib/user';
 
-async function getUserFromToken(): Promise<(User & { id: string }) | null> {
+async function getUserFromToken(): Promise<(User & { id: string })> {
     const token = cookies().get('auth_token')?.value;
 
+    // This should not happen if middleware is working correctly.
     if (!token) {
-        return null;
+        throw new Error('Authentication token not found. Middleware might be misconfigured.');
+    }
+
+    if (!process.env.JWT_SECRET) {
+        throw new Error('JWT_SECRET environment variable is not set.');
     }
 
     try {
-        const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
+        const secret = new TextEncoder().encode(process.env.JWT_SECRET);
         const { payload } = await jose.jwtVerify(token, secret);
         
         // The payload from our JWT should match this structure
@@ -25,8 +30,9 @@ async function getUserFromToken(): Promise<(User & { id: string }) | null> {
         };
 
     } catch (error) {
-        console.error("Failed to verify token:", error);
-        return null;
+        console.error("Failed to verify token in AdminLayout:", error);
+        // This is an unexpected error because middleware should have caught invalid tokens.
+        throw new Error('Failed to verify authentication token.');
     }
 }
 
@@ -36,11 +42,10 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // If we've reached this layout, the middleware has already validated the token.
+  // We can now safely get the user data from it.
+  // The redirect logic is now solely in middleware.ts.
   const user = await getUserFromToken();
-
-  if (!user) {
-    redirect('/login?callbackUrl=/admin');
-  }
 
   const profile = await getProfile();
   
