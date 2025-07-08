@@ -2,30 +2,33 @@
 import { redirect } from 'next/navigation';
 import AdminLayoutClient from './AdminLayoutClient';
 import { getProfile } from '@/lib/api';
-import { headers } from 'next/headers';
-import type { User } from '@/lib/user';
+import { cookies } from 'next/headers';
+import * as jose from 'jose';
 
-// This function now reads user data securely passed from the middleware
-// via request headers. It no longer needs to verify the token itself.
-async function getUserFromHeaders(): Promise<(User & { id: string }) | null> {
-    const headersList = headers();
-    
-    const userId = headersList.get('x-user-id');
-    const userName = headersList.get('x-user-name');
-    const userEmail = headersList.get('x-user-email');
+// This payload must match what's in the JWT created during login
+interface UserJwtPayload {
+    id: string;
+    name: string;
+    email: string;
+}
 
-    if (!userId || !userName || !userEmail) {
-        // This case should ideally not be reached if the middleware is working
-        // correctly, as it would have redirected unauthenticated users.
+// We decode the token directly in the layout.
+// This is the most reliable way to get user info in a Server Component.
+async function getUserFromCookie(): Promise<UserJwtPayload | null> {
+    const token = cookies().get('auth_token')?.value;
+    const secret = process.env.JWT_SECRET;
+
+    if (!token || !secret) {
         return null;
     }
 
-    return {
-        _id: userId as any, // Not a real ObjectId, but satisfies the type for the client
-        id: userId,
-        name: userName,
-        email: userEmail,
-    };
+    try {
+        const { payload } = await jose.jwtVerify(token, new TextEncoder().encode(secret));
+        return payload as UserJwtPayload;
+    } catch (e) {
+        console.error("Failed to verify token in AdminLayout:", e);
+        return null;
+    }
 }
 
 
@@ -34,24 +37,28 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // By the time this layout renders, the middleware has already validated
-  // the user's token. We can now safely get the user data from the headers.
-  // The middleware is the single source of truth for authentication.
-  const user = await getUserFromHeaders();
+  // The middleware has already protected this route. Now, we get the
+  // user data from the cookie to pass to UI components in the tree.
+  const userPayload = await getUserFromCookie();
 
-  // If the user is null here, it means the middleware is misconfigured or failed,
-  // but we will not redirect from the layout to prevent loops. The middleware handles redirects.
-  if (!user) {
-    // This will prevent rendering the admin panel if headers are missing,
-    // but relies on the middleware to have already redirected.
-    // In a production scenario, you might want to throw an error here.
-    return null;
+  // This is a safety net. If the token becomes invalid between the
+  // middleware check and this render (e.g., it expires), we redirect.
+  if (!userPayload) {
+    redirect('/login');
   }
 
   const profile = await getProfile();
   
-  // We rename the user object to session to match what AdminLayoutClient expects
-  const session = { user };
+  // The AdminLayoutClient component expects a specific 'session' object shape.
+  // We construct it here from the token payload.
+  const session = {
+      user: {
+        id: userPayload.id,
+        name: userPayload.name,
+        email: userPayload.email,
+        image: null // The image is not stored in the JWT in this app
+      }
+  };
 
   return <AdminLayoutClient profile={profile} session={session}>{children}</AdminLayoutClient>;
 }
