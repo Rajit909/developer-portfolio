@@ -45,9 +45,12 @@ export default function LoginForm() {
             });
 
             if (res.ok) {
-                // Perform a full page redirect. This is more reliable for auth flows
-                // as it ensures the server gets the new cookie state on the next request.
-                window.location.href = callbackUrl;
+                toast({
+                    title: 'Login Successful',
+                    description: "Redirecting to the admin panel...",
+                });
+                router.push(callbackUrl);
+                // We don't set isLoading to false on success because the page is navigating away.
             } else {
                 const data = await res.json();
                 toast({
@@ -55,7 +58,7 @@ export default function LoginForm() {
                     description: data.message || 'Invalid email or password. Please try again.',
                     variant: 'destructive',
                 });
-                setIsLoading(false); // Only stop loading on failure
+                setIsLoading(false);
             }
         } catch (error) {
             console.error('Login error:', error);
@@ -64,7 +67,7 @@ export default function LoginForm() {
                 description: 'An internal server error occurred. Please try again.',
                 variant: 'destructive',
             });
-            setIsLoading(false); // Only stop loading on failure
+            setIsLoading(false);
         }
     };
 
