@@ -25,6 +25,7 @@ export default function LoginForm() {
                 title: 'Account Created!',
                 description: "You can now sign in with your new credentials.",
             });
+            // Use router.replace to remove the query param from the URL without reloading
             router.replace('/login', { scroll: false });
         }
     }, [searchParams, router, toast]);
@@ -49,6 +50,7 @@ export default function LoginForm() {
                     title: 'Login Successful',
                     description: "Redirecting to the admin panel...",
                 });
+                router.refresh(); // Force a refresh to ensure the cookie is set before navigation
                 router.push(callbackUrl);
                 // We don't set isLoading to false on success because the page is navigating away.
             } else {
