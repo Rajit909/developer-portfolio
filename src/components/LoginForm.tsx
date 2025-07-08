@@ -45,8 +45,9 @@ export default function LoginForm() {
             });
 
             if (res.ok) {
-                router.push(callbackUrl);
-                router.refresh(); // Important to refresh server-side data
+                // Perform a full page redirect. This is more reliable for auth flows
+                // as it ensures the server gets the new cookie state on the next request.
+                window.location.href = callbackUrl;
             } else {
                 const data = await res.json();
                 toast({
@@ -54,16 +55,16 @@ export default function LoginForm() {
                     description: data.message || 'Invalid email or password. Please try again.',
                     variant: 'destructive',
                 });
+                setIsLoading(false); // Only stop loading on failure
             }
         } catch (error) {
-            console.error(error);
+            console.error('Login error:', error);
             toast({
                 title: 'Login Failed',
-                description: 'An unexpected error occurred. Please try again.',
+                description: 'An internal server error occurred. Please try again.',
                 variant: 'destructive',
             });
-        } finally {
-            setIsLoading(false);
+            setIsLoading(false); // Only stop loading on failure
         }
     };
 
