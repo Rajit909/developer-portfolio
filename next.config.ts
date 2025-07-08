@@ -1,7 +1,8 @@
+
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
-  allowedDevOrigins: ['local-origin.dev', '*.local-origin.dev'],
+  allowedDevOrigins: ['*.cloudworkstations.dev', '*.googleusercontent.com'],
   /* config options here */
   typescript: {
     ignoreBuildErrors: true,
