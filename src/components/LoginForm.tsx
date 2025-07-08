@@ -16,11 +16,10 @@ export default function LoginForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { toast } = useToast();
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     
     const callbackUrl = searchParams.get('callbackUrl') || '/admin';
+    const error = searchParams.get('error');
 
     useEffect(() => {
         if (searchParams.get('signup') === 'success') {
@@ -28,37 +27,31 @@ export default function LoginForm() {
                 title: 'Account Created!',
                 description: "You can now sign in with your new credentials.",
             });
-            // Using window.history.replaceState to avoid re-rendering with router.replace
             window.history.replaceState(null, '', '/login');
         }
-    }, [searchParams, toast]);
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsLoading(true);
-
-        const result = await signIn('credentials', {
-            redirect: false,
-            email,
-            password,
-        });
-
-        setIsLoading(false);
-
-        if (result?.error) {
+        if (error) {
             toast({
                 title: 'Login Failed',
                 description: 'Invalid email or password. Please try again.',
                 variant: 'destructive',
             });
-        } else if (result?.ok) {
-             toast({
-                title: 'Login Successful',
-                description: "Welcome back!",
-            });
-            router.push(callbackUrl);
-            router.refresh(); // Refresh the page to ensure session is updated
+             // Use router.replace to remove the error from the URL without reloading
+            router.replace('/login', { scroll: false });
         }
+    }, [searchParams, error, router, toast]);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsLoading(true);
+
+        await signIn('credentials', {
+            email: (e.currentTarget.elements.namedItem('email') as HTMLInputElement).value,
+            password: (e.currentTarget.elements.namedItem('password') as HTMLInputElement).value,
+            callbackUrl,
+        });
+        
+        // This part might not be reached if signIn successfully redirects
+        setIsLoading(false);
     };
 
     return (
@@ -75,11 +68,10 @@ export default function LoginForm() {
                         <Label htmlFor="email">Email</Label>
                         <Input
                             id="email"
+                            name="email"
                             type="email"
                             placeholder="admin@example.com"
                             required
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
                             disabled={isLoading}
                         />
                     </div>
@@ -87,10 +79,9 @@ export default function LoginForm() {
                         <Label htmlFor="password">Password</Label>
                         <Input
                             id="password"
+                            name="password"
                             type="password"
                             required
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
                             disabled={isLoading}
                         />
                     </div>

@@ -1,15 +1,11 @@
 
 import type { NextAuthOptions, User as NextAuthUser } from 'next-auth';
-import { MongoDBAdapter } from '@next-auth/mongodb-adapter';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import clientPromise from './mongodb';
-import { findUserByEmail, createUser } from './user';
+import { findUserByEmail } from './user';
 import { compare } from 'bcryptjs';
 
 export const authOptions: NextAuthOptions = {
-  adapter: MongoDBAdapter(clientPromise, {
-    databaseName: 'portfolio-data',
-  }),
   providers: [
     CredentialsProvider({
       name: 'Credentials',
