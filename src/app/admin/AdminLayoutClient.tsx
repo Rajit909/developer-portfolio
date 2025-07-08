@@ -3,7 +3,17 @@
 import AdminNav from '@/components/AdminNav';
 import { SidebarProvider, Sidebar, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import type { Profile } from '@/lib/types';
-import type { Session } from 'next-auth';
+import type { User } from '@/lib/user';
+
+// Simplified session type for our custom auth
+interface CustomSession {
+    user: {
+        id: string;
+        name?: string | null;
+        email?: string | null;
+        image?: string | null;
+    }
+}
 
 export default function AdminLayoutClient({
   children,
@@ -12,7 +22,7 @@ export default function AdminLayoutClient({
 }: {
   children: React.ReactNode;
   profile: Profile;
-  session: Session;
+  session: CustomSession;
 }) {
   return (
     <SidebarProvider>

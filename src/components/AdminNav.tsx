@@ -1,14 +1,21 @@
 "use client";
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Home, Newspaper, Briefcase, Award, User, Settings, Code2, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SidebarHeader, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter } from './ui/sidebar';
-import type { Session } from 'next-auth';
-import { signOut } from 'next-auth/react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { useToast } from '@/hooks/use-toast';
 
+interface CustomSession {
+    user: {
+        id: string;
+        name?: string | null;
+        email?: string | null;
+        image?: string | null;
+    }
+}
 
 const navLinks = [
   { href: '/admin', label: 'Dashboard', icon: Home },
@@ -19,9 +26,25 @@ const navLinks = [
   { href: '/admin/settings', label: 'Settings', icon: Settings },
 ];
 
-export default function AdminNav({ session }: { session: Session }) {
+export default function AdminNav({ session }: { session: CustomSession }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { toast } = useToast();
   const userInitial = session.user?.name?.charAt(0).toUpperCase() ?? 'A';
+
+  const handleSignOut = async () => {
+    try {
+        await fetch('/api/logout', { method: 'POST' });
+        router.push('/');
+        router.refresh();
+    } catch (error) {
+        toast({
+            title: 'Error Signing Out',
+            description: 'Something went wrong. Please try again.',
+            variant: 'destructive'
+        })
+    }
+  }
 
   return (
     <>
@@ -69,7 +92,7 @@ export default function AdminNav({ session }: { session: Session }) {
                 </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-                <SidebarMenuButton onClick={() => signOut({ callbackUrl: '/' })} tooltip={{children: 'Sign Out'}}>
+                <SidebarMenuButton onClick={handleSignOut} tooltip={{children: 'Sign Out'}}>
                     <LogOut />
                     <span>Sign Out</span>
                 </SidebarMenuButton>

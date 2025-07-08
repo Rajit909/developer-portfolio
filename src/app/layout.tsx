@@ -4,7 +4,6 @@ import { Toaster } from "@/components/ui/toaster"
 import { ThemeProvider } from '@/components/theme-provider';
 import AppContent from '@/components/AppContent';
 import { getProfile } from '@/lib/api';
-import AuthProvider from '@/components/AuthProvider';
 
 export async function generateMetadata(): Promise<Metadata> {
   const profile = await getProfile();
@@ -29,19 +28,17 @@ export default async function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased">
-        <AuthProvider>
-            <ThemeProvider
-                attribute="class"
-                defaultTheme="system"
-                enableSystem
-                disableTransitionOnChange
-            >
-                <AppContent profile={profile}>
-                    {children}
-                </AppContent>
-                <Toaster />
-            </ThemeProvider>
-        </AuthProvider>
+        <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+        >
+            <AppContent profile={profile}>
+                {children}
+            </AppContent>
+            <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );

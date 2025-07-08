@@ -2,7 +2,6 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,39 +19,51 @@ export default function LoginForm() {
     
     const callbackUrl = searchParams.get('callbackUrl') || '/admin';
     
-    // This effect handles showing a success toast after signing up.
     useEffect(() => {
         if (searchParams.get('signup') === 'success') {
             toast({
                 title: 'Account Created!',
                 description: "You can now sign in with your new credentials.",
             });
-            // Use router.replace to remove the query param from the URL without reloading
             router.replace('/login', { scroll: false });
         }
     }, [searchParams, router, toast]);
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsLoading(true);
 
-        const result = await signIn('credentials', {
-            email: (e.currentTarget.elements.namedItem('email') as HTMLInputElement).value,
-            password: (e.currentTarget.elements.namedItem('password') as HTMLInputElement).value,
-            redirect: false, // Important: we will handle the redirect manually
-        });
+        const formData = new FormData(e.currentTarget);
+        const email = formData.get('email') as string;
+        const password = formData.get('password') as string;
 
-        setIsLoading(false);
+        try {
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password }),
+            });
 
-        if (result?.error) {
+            if (res.ok) {
+                router.push(callbackUrl);
+                router.refresh(); // Important to refresh server-side data
+            } else {
+                const data = await res.json();
+                toast({
+                    title: 'Login Failed',
+                    description: data.message || 'Invalid email or password. Please try again.',
+                    variant: 'destructive',
+                });
+            }
+        } catch (error) {
+            console.error(error);
             toast({
                 title: 'Login Failed',
-                description: 'Invalid email or password. Please try again.',
+                description: 'An unexpected error occurred. Please try again.',
                 variant: 'destructive',
             });
-        } else if (result?.ok) {
-            // On success, NextAuth sets the session cookie and we can redirect
-            router.push(callbackUrl);
+        } finally {
+            setIsLoading(false);
         }
     };
 
