@@ -7,6 +7,7 @@ import ProjectCard from '@/components/ProjectCard';
 import BlogCard from '@/components/BlogCard';
 import AchievementCard from '@/components/AchievementCard';
 import TechStack from '@/components/TechStack';
+import GitHubActivity from '@/components/GitHubActivity';
 
 export default async function Home() {
   const profile = await getProfile();
@@ -56,8 +57,15 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Featured Projects Section */}
+      {/* GitHub Activity Section */}
       <section className="opacity-0 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+        <h2 className="font-headline text-3xl font-bold mb-8 text-center">My GitHub Activity</h2>
+        <GitHubActivity />
+      </section>
+
+
+      {/* Featured Projects Section */}
+      <section className="opacity-0 animate-fade-in-up" style={{ animationDelay: '400ms' }}>
         <h2 className="font-headline text-3xl font-bold mb-8 text-center">Featured Projects</h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {featuredProjects.map((project) => (
@@ -67,13 +75,13 @@ export default async function Home() {
       </section>
 
        {/* Tech Stack Section */}
-      <section className="opacity-0 animate-fade-in-up" style={{ animationDelay: '400ms' }}>
+      <section className="opacity-0 animate-fade-in-up" style={{ animationDelay: '600ms' }}>
         <h2 className="font-headline text-3xl font-bold mb-12 text-center">My Tech Stack</h2>
         <TechStack technologies={allTechStack} />
       </section>
 
       {/* Achievements Section */}
-      <section className="opacity-0 animate-fade-in-up" style={{ animationDelay: '600ms' }}>
+      <section className="opacity-0 animate-fade-in-up" style={{ animationDelay: '800ms' }}>
         <h2 className="font-headline text-3xl font-bold mb-12 text-center">My Achievements</h2>
          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {allAchievements.map((achievement, index) => (
@@ -83,7 +91,7 @@ export default async function Home() {
       </section>
 
       {/* Recent Blog Posts Section */}
-      <section className="opacity-0 animate-fade-in-up" style={{ animationDelay: '800ms' }}>
+      <section className="opacity-0 animate-fade-in-up" style={{ animationDelay: '1000ms' }}>
         <h2 className="font-headline text-3xl font-bold mb-8 text-center">From the Blog</h2>
         <div className="grid md:grid-cols-1 lg:grid-cols-3 gap-8">
           {recentPosts.map((post) => (
