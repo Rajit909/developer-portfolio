@@ -26,10 +26,10 @@
     --radius: 0.5rem;
 
     --contribution-level-0: 240 5.9% 90%;
-    --contribution-level-1: 140 50% 80%;
-    --contribution-level-2: 140 50% 60%;
-    --contribution-level-3: 140 50% 40%;
-    --contribution-level-4: 140 50% 20%;
+    --contribution-level-1: 135 68% 82%;
+    --contribution-level-2: 135 53% 51%;
+    --contribution-level-3: 135 54% 41%;
+    --contribution-level-4: 141 53% 28%;
   }
  
   .dark {
@@ -54,10 +54,10 @@
     --ring: 262.1 83.3% 77.8%;
 
     --contribution-level-0: 240 3.7% 15.9%;
-    --contribution-level-1: 140 50% 20%;
-    --contribution-level-2: 140 50% 35%;
-    --contribution-level-3: 140 50% 50%;
-    --contribution-level-4: 140 50% 65%;
+    --contribution-level-1: 141 53% 28%;
+    --contribution-level-2: 135 54% 41%;
+    --contribution-level-3: 135 53% 51%;
+    --contribution-level-4: 135 68% 82%;
   }
 }
  
