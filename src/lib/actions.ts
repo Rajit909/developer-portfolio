@@ -7,6 +7,7 @@ import { redirect } from 'next/navigation';
 import { suggestBlogTags, SuggestBlogTagsInput } from "@/ai/flows/suggest-blog-tags";
 import { suggestBlogContent, SuggestBlogContentInput } from "@/ai/flows/suggest-blog-content";
 import { generateBlogImage, GenerateBlogImageInput } from "@/ai/flows/generate-blog-image";
+import { generateProjectDescription, GenerateProjectDescriptionInput } from "@/ai/flows/generate-project-description";
 import clientPromise from "./mongodb";
 import { BlogPost, Project, Achievement, Tech } from "./types";
 import { ObjectId } from "mongodb";
@@ -163,7 +164,7 @@ const projectSchema = z.object({
     description: z.string().min(10, "Short description must be at least 10 characters."),
     longDescription: z.string().min(50, "Long description must be at least 50 characters."),
     technologies: z.string().min(1, "Please add at least one technology."),
-    imageUrl: z.string().url("A valid image URL is required.").min(1),
+    imageUrl: z.string().url("A valid image URL is required.").min(1, "An image is required."),
     githubUrl: z.string().url("Please enter a valid URL.").optional().or(z.literal('')),
     liveUrl: z.string().url("Please enter a valid URL.").optional().or(z.literal('')),
     featured: z.preprocess((val) => val === 'on', z.boolean()),
@@ -413,8 +414,20 @@ export async function handleNewProject(prevState: any, formData: FormData) {
                 message: "Please correct the errors and try again.",
             };
         }
+        
+        const { imageUrl, title, technologies, ...rest } = validatedFields.data;
 
-        const { title, technologies, ...rest } = validatedFields.data;
+        // Image size validation for data URIs
+        if (imageUrl.startsWith('data:')) {
+            const base64Data = imageUrl.split(',')[1];
+            const buffer = Buffer.from(base64Data, 'base64');
+            if (buffer.length > 200 * 1024) { // 200KB
+                return {
+                    errors: { imageUrl: ["The generated or uploaded image exceeds the 200KB size limit."] },
+                    message: "Image size is too large. Please generate a new one or upload a smaller file.",
+                };
+            }
+        }
         
         const client = await clientPromise;
         const db = client.db('portfolio-data');
@@ -432,6 +445,7 @@ export async function handleNewProject(prevState: any, formData: FormData) {
             slug,
             title,
             technologies: techsArray,
+            imageUrl,
             ...rest,
             'data-ai-hint': 'project technology',
         };
@@ -771,6 +785,21 @@ export async function getBlogContentSuggestion(topic: string) {
     } catch (error) {
         console.error("Error getting blog content suggestion:", error);
         return { error: "Failed to get content suggestion. Please try again later." };
+    }
+}
+
+export async function getProjectDescriptionSuggestion(title: string) {
+    if (!title || title.trim().length < 5) {
+        return { error: "Please provide a title of at least 5 characters." };
+    }
+
+    try {
+        const input: GenerateProjectDescriptionInput = { title };
+        const result = await generateProjectDescription(input);
+        return { descriptions: result };
+    } catch (error) {
+        console.error("Error getting project description suggestion:", error);
+        return { error: "Failed to get description suggestion. Please try again later." };
     }
 }
 

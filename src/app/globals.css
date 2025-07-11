@@ -24,6 +24,12 @@
     --input: 240 5.9% 90%;
     --ring: 262.1 83.3% 57.8%;
     --radius: 0.5rem;
+
+    --contribution-level-0: 240 5.9% 90%;
+    --contribution-level-1: 140 50% 80%;
+    --contribution-level-2: 140 45% 60%;
+    --contribution-level-3: 140 55% 40%;
+    --contribution-level-4: 140 65% 25%;
   }
  
   .dark {
@@ -46,6 +52,12 @@
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
     --ring: 262.1 83.3% 77.8%;
+
+    --contribution-level-0: 240 3.7% 15.9%;
+    --contribution-level-1: 140 65% 25%;
+    --contribution-level-2: 140 55% 40%;
+    --contribution-level-3: 140 45% 60%;
+    --contribution-level-4: 140 50% 80%;
   }
 }
  
@@ -56,4 +68,10 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+@layer utilities {
+    .grid-cols-53 {
+        grid-template-columns: repeat(53, minmax(0, 1fr));
+    }
 }
