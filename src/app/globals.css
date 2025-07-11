@@ -25,11 +25,11 @@
     --ring: 262.1 83.3% 57.8%;
     --radius: 0.5rem;
 
-    --contribution-level-0: 240 5.9% 90%;
-    --contribution-level-1: 140 50% 80%;
-    --contribution-level-2: 140 45% 60%;
-    --contribution-level-3: 140 55% 40%;
-    --contribution-level-4: 140 65% 25%;
+    --contribution-level-0: 240 5.9% 90%; /* Gray for no activity */
+    --contribution-level-1: 130 50% 85%; /* Very light green */
+    --contribution-level-2: 130 45% 70%;
+    --contribution-level-3: 130 55% 50%;
+    --contribution-level-4: 130 65% 30%; /* Dark green */
   }
  
   .dark {
@@ -53,11 +53,11 @@
     --input: 240 3.7% 15.9%;
     --ring: 262.1 83.3% 77.8%;
 
-    --contribution-level-0: 240 3.7% 15.9%;
-    --contribution-level-1: 140 65% 25%;
-    --contribution-level-2: 140 55% 40%;
-    --contribution-level-3: 140 45% 60%;
-    --contribution-level-4: 140 50% 80%;
+    --contribution-level-0: 240 3.7% 15.9%; /* Dark gray for no activity */
+    --contribution-level-1: 130 65% 20%; /* Darker, less saturated green */
+    --contribution-level-2: 130 55% 30%;
+    --contribution-level-3: 130 45% 45%;
+    --contribution-level-4: 130 50% 65%; /* Lighter, more vibrant green */
   }
 }
  
