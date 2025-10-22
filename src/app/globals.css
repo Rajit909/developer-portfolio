@@ -4,60 +4,60 @@
 
 @layer base {
   :root {
-    --background: 240 20% 98%;
-    --foreground: 240 10% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 262.1 83.3% 57.8%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 262.1 83.3% 67.8%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 262.1 83.3% 57.8%;
+    --background: hsl(240 20% 98%);
+    --foreground: hsl(240 10% 3.9%);
+    --card: hsl(0 0% 100%);
+    --card-foreground: hsl(240 10% 3.9%);
+    --popover: hsl(0 0% 100%);
+    --popover-foreground: hsl(240 10% 3.9%);
+    --primary: hsl(262.1 83.3% 57.8%);
+    --primary-foreground: hsl(0 0% 98%);
+    --secondary: hsl(240 4.8% 95.9%);
+    --secondary-foreground: hsl(240 5.9% 10%);
+    --muted: hsl(240 4.8% 95.9%);
+    --muted-foreground: hsl(240 3.8% 46.1%);
+    --accent: hsl(262.1 83.3% 67.8%);
+    --accent-foreground: hsl(0 0% 98%);
+    --destructive: hsl(0 84.2% 60.2%);
+    --destructive-foreground: hsl(0 0% 98%);
+    --border: hsl(240 5.9% 90%);
+    --input: hsl(240 5.9% 90%);
+    --ring: hsl(262.1 83.3% 57.8%);
     --radius: 0.5rem;
 
-    --contribution-level-0: 240 5.9% 90%; /* Gray for no activity */
-    --contribution-level-1: 130 50% 85%; /* Very light green */
-    --contribution-level-2: 130 45% 70%;
-    --contribution-level-3: 130 55% 50%;
-    --contribution-level-4: 130 65% 30%; /* Dark green */
+    --contribution-level-0: hsl(240 5.9% 90%); /* Gray for no activity */
+    --contribution-level-1: hsl(130 50% 85%); /* Very light green */
+    --contribution-level-2: hsl(130 45% 70%);
+    --contribution-level-3: hsl(130 55% 50%);
+    --contribution-level-4: hsl(130 65% 30%); /* Dark green */
   }
  
   .dark {
-    --background: 250 25% 11%;
-    --foreground: 0 0% 98%;
-    --card: 250 25% 14%;
-    --card-foreground: 0 0% 98%;
-    --popover: 250 25% 11%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 262.1 83.3% 77.8%;
-    --primary-foreground: 262 84% 10%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 262.1 83.3% 67.8%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 262.1 83.3% 77.8%;
+    --background: hsl(250 25% 11%);
+    --foreground: hsl(0 0% 98%);
+    --card: hsl(250 25% 14%);
+    --card-foreground: hsl(0 0% 98%);
+    --popover: hsl(250 25% 11%);
+    --popover-foreground: hsl(0 0% 98%);
+    --primary: hsl(262.1 83.3% 77.8%);
+    --primary-foreground: hsl(262 84% 10%);
+    --secondary: hsl(240 3.7% 15.9%);
+    --secondary-foreground: hsl(0 0% 98%);
+    --muted: hsl(240 3.7% 15.9%);
+    --muted-foreground: hsl(240 5% 64.9%);
+    --accent: hsl(262.1 83.3% 67.8%);
+    --accent-foreground: hsl(0 0% 98%);
+    --destructive: hsl(0 62.8% 30.6%);
+    --destructive-foreground: hsl(0 0% 98%);
+    --border: hsl(240 3.7% 15.9%);
+    --input: hsl(240 3.7% 15.9%);
+    --ring: hsl(262.1 83.3% 77.8%);
 
-    --contribution-level-0: 240 3.7% 15.9%; /* Dark gray for no activity */
-    --contribution-level-1: 130 65% 20%; /* Darker, less saturated green */
-    --contribution-level-2: 130 55% 30%;
-    --contribution-level-3: 130 45% 45%;
-    --contribution-level-4: 130 50% 65%; /* Lighter, more vibrant green */
+    --contribution-level-0: hsl(240 3.7% 15.9%); /* Dark gray for no activity */
+    --contribution-level-1: hsl(130 65% 20%); /* Darker, less saturated green */
+    --contribution-level-2: hsl(130 55% 30%);
+    --contribution-level-3: hsl(130 45% 45%);
+    --contribution-level-4: hsl(130 50% 65%); /* Lighter, more vibrant green */
   }
 }
  
