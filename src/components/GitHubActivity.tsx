@@ -124,11 +124,11 @@ const GitHubActivity = () => {
                     </div>
                      <div className="flex justify-end items-center gap-2 mt-2 text-xs text-muted-foreground w-full">
                         <span>Less</span>
-                        <div className="w-2.5 h-2.5 rounded-full bg-contribution-level-0"></div>
-                        <div className="w-2.5 h-2.5 rounded-full bg-contribution-level-1"></div>
-                        <div className="w-2.5 h-2.5 rounded-full bg-contribution-level-2"></div>
-                        <div className="w-2.5 h-2.5 rounded-full bg-contribution-level-3"></div>
-                        <div className="w-2.5 h-2.5 rounded-full bg-contribution-level-4"></div>
+                        <div className="w-2.5 h-2.5 rounded-full bg-[--contribution-level-0]"></div>
+                        <div className="w-2.5 h-2.5 rounded-full bg-[--contribution-level-1]"></div>
+                        <div className="w-2.5 h-2.5 rounded-full bg-[--contribution-level-2]"></div>
+                        <div className="w-2.5 h-2.5 rounded-full bg-[--contribution-level-3]"></div>
+                        <div className="w-2.5 h-2.5 rounded-full bg-[--contribution-level-4]"></div>
                         <span>More</span>
                     </div>
                 </div>
