@@ -70,7 +70,7 @@ const GitHubActivity = () => {
 
     // Display a placeholder while the client-side data is being generated.
     if (activityData.length === 0) {
-        return <div className="p-4 border rounded-lg bg-card text-card-foreground h-[138px] animate-pulse w-full"></div>;
+        return <div className="p-4 border rounded-lg bg-card text-card-foreground h-[138px] animate-pulse w-full max-w-fit mx-auto"></div>;
     }
     
     const grid = Array.from({ length: DAYS_IN_WEEK }, () => Array(WEEKS).fill(null));
@@ -89,27 +89,27 @@ const GitHubActivity = () => {
 
     return (
         <TooltipProvider>
-            <div className="p-4 border rounded-lg bg-card text-card-foreground overflow-x-auto">
-                <div className="flex flex-col items-start" style={{ width: `${WEEKS * 14}px` }}>
+            <div className="p-4 border rounded-lg bg-card text-card-foreground overflow-x-auto max-w-fit mx-auto">
+                <div className="flex flex-col items-start">
                     <div className="relative w-full h-5 mb-1">
                         {monthLabels.map(({ month, week }) => (
-                            <div key={`${month}-${week}`} className="text-xs text-muted-foreground absolute" style={{ left: `${week * 14}px` }}>
+                            <div key={`${month}-${week}`} className="text-xs text-muted-foreground absolute" style={{ left: `${week * 16}px` }}>
                                 {month}
                             </div>
                         ))}
                     </div>
-                    <div className="flex gap-2">
-                        <div className="grid grid-rows-7 gap-[2px] text-xs text-muted-foreground pr-1">
+                    <div className="flex gap-3">
+                        <div className="grid grid-rows-7 gap-1 text-xs text-muted-foreground pr-1">
                             {dayLabels.map((day, i) => (
-                                <div key={day} className="h-3 leading-3" style={{ visibility: i % 2 !== 0 ? 'visible' : 'hidden' }}>{day}</div>
+                                <div key={day} className="h-2.5 leading-none mt-px" style={{ visibility: i % 2 !== 0 ? 'visible' : 'hidden' }}>{day}</div>
                             ))}
                         </div>
-                        <div className="grid grid-cols-53 grid-rows-7 gap-[2px]">
+                        <div className="grid grid-cols-53 grid-rows-7 gap-1">
                             {grid.flat().map((day, index) => (
                                 <Tooltip key={index} delayDuration={100}>
                                     <TooltipTrigger asChild>
                                         <div
-                                            className="w-3 h-3 rounded-sm"
+                                            className="w-2.5 h-2.5 rounded-full"
                                             style={{ backgroundColor: `var(--contribution-level-${day?.level ?? 0})` }}
                                         ></div>
                                     </TooltipTrigger>
@@ -124,11 +124,11 @@ const GitHubActivity = () => {
                     </div>
                      <div className="flex justify-end items-center gap-2 mt-2 text-xs text-muted-foreground w-full">
                         <span>Less</span>
-                        <div className="w-3 h-3 rounded-sm bg-contribution-level-0"></div>
-                        <div className="w-3 h-3 rounded-sm bg-contribution-level-1"></div>
-                        <div className="w-3 h-3 rounded-sm bg-contribution-level-2"></div>
-                        <div className="w-3 h-3 rounded-sm bg-contribution-level-3"></div>
-                        <div className="w-3 h-3 rounded-sm bg-contribution-level-4"></div>
+                        <div className="w-2.5 h-2.5 rounded-full bg-contribution-level-0"></div>
+                        <div className="w-2.5 h-2.5 rounded-full bg-contribution-level-1"></div>
+                        <div className="w-2.5 h-2.5 rounded-full bg-contribution-level-2"></div>
+                        <div className="w-2.5 h-2.5 rounded-full bg-contribution-level-3"></div>
+                        <div className="w-2.5 h-2.5 rounded-full bg-contribution-level-4"></div>
                         <span>More</span>
                     </div>
                 </div>
