@@ -3,80 +3,110 @@
 
 import React, { useEffect, useState } from 'react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const WEEKS = 53;
 const DAYS_IN_WEEK = 7;
-const TOTAL_DAYS = WEEKS * DAYS_IN_WEEK;
 
-// This function generates placeholder contribution data for the past year.
-const generateActivityData = () => {
-    const data = Array.from({ length: TOTAL_DAYS }, (_, i) => {
-        const today = new Date();
-        const date = new Date(today);
-        date.setDate(today.getDate() - (TOTAL_DAYS - 1 - i));
-        
-        // Default to level 0 (no contributions)
-        const level = 0;
+interface ContributionDay {
+  date: string;
+  contributionCount: number;
+  color: string;
+}
 
-        return {
-            date: date.toISOString().split('T')[0],
-            level,
-            contributions: 0
-        };
-    });
-    return data;
-};
+interface Week {
+  contributionDays: ContributionDay[];
+}
 
-// This function calculates the labels for the months.
-const getMonthLabels = () => {
+interface ContributionData {
+  totalContributions: number;
+  weeks: Week[];
+}
+
+const getMonthLabels = (weeks: Week[]) => {
     const labels: { month: string; week: number }[] = [];
-    const today = new Date();
-    // Start from the beginning of the activity grid's date range
-    let currentDate = new Date(today);
-    currentDate.setDate(today.getDate() - TOTAL_DAYS + 1);
-    
-    // Add the first month
-    labels.push({ month: currentDate.toLocaleString('default', { month: 'short' }), week: 0 });
+    if (!weeks || weeks.length === 0) return labels;
 
-    for (let i = 1; i < WEEKS; i++) {
-        const lastDate = new Date(currentDate);
-        currentDate.setDate(currentDate.getDate() + 7); // Move to the next week
-        // If the month changes, add a new label
-        if(currentDate.getMonth() !== lastDate.getMonth()) {
-            labels.push({ month: currentDate.toLocaleString('default', { month: 'short' }), week: i });
+    let lastMonth = -1;
+
+    weeks.forEach((week, weekIndex) => {
+        const firstDayOfMonth = week.contributionDays.find(day => {
+            const date = new Date(day.date);
+            const dayOfMonth = date.getDate();
+            const month = date.getMonth();
+            return dayOfMonth <= 7 && month !== lastMonth;
+        });
+
+        if (firstDayOfMonth) {
+            const date = new Date(firstDayOfMonth.date);
+            const month = date.getMonth();
+            if (month !== lastMonth) {
+                labels.push({
+                    month: date.toLocaleString('default', { month: 'short' }),
+                    week: weekIndex,
+                });
+                lastMonth = month;
+            }
         }
-    }
+    });
+
     return labels;
 }
 
 const GitHubActivity = () => {
-    // We use state to ensure this part of the component only runs on the client.
-    const [activityData, setActivityData] = useState<any[]>([]);
+    const [activityData, setActivityData] = useState<ContributionData | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [monthLabels, setMonthLabels] = useState<{ month: string, week: number }[]>([]);
 
     useEffect(() => {
-        // In a real implementation, you would fetch data from the GitHub API here.
-        // For now, we are using generated placeholder data.
-        setActivityData(generateActivityData());
-        setMonthLabels(getMonthLabels());
+        const fetchActivity = async () => {
+            try {
+                const res = await fetch('/api/github-activity');
+                if (!res.ok) {
+                    const errorData = await res.json();
+                    throw new Error(errorData.error || 'Failed to fetch GitHub activity');
+                }
+                const data: ContributionData = await res.json();
+                setActivityData(data);
+                setMonthLabels(getMonthLabels(data.weeks));
+            } catch (err: any) {
+                setError(err.message);
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchActivity();
     }, []);
 
-    // Display a placeholder while the client-side data is being generated.
-    if (activityData.length === 0) {
-        return <div className="p-4 border rounded-lg bg-card text-card-foreground h-[138px] animate-pulse w-full max-w-fit mx-auto"></div>;
+    if (loading) {
+        return <div className="p-4 border rounded-lg bg-card text-card-foreground h-[138px] w-full max-w-fit mx-auto"><Skeleton className="h-full w-full" /></div>;
+    }
+
+    if (error) {
+        return (
+            <div className="p-4 border rounded-lg bg-destructive/10 text-destructive-foreground max-w-fit mx-auto text-center">
+                <p className="font-bold">Error loading GitHub activity</p>
+                <p className="text-xs">{error}</p>
+                <p className="text-xs mt-2">Please ensure your GITHUB_TOKEN is set correctly in a `.env.local` file.</p>
+            </div>
+        );
     }
     
+    if (!activityData) {
+        return null;
+    }
+
     const grid = Array.from({ length: DAYS_IN_WEEK }, () => Array(WEEKS).fill(null));
-    
-    // This logic places each day's data into the correct grid cell.
-    const firstDay = new Date(activityData[0].date).getDay();
-    activityData.forEach((day, index) => {
-        const dayOfWeek = (firstDay + index) % DAYS_IN_WEEK;
-        const week = Math.floor((firstDay + index) / DAYS_IN_WEEK);
-        if (week < WEEKS && dayOfWeek < DAYS_IN_WEEK) {
-            grid[dayOfWeek][week] = day;
-        }
+    activityData.weeks.forEach((week, weekIndex) => {
+        week.contributionDays.forEach(day => {
+            const dayOfWeek = new Date(day.date).getDay();
+            grid[dayOfWeek][weekIndex] = day;
+        });
     });
+
 
     const dayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -98,30 +128,36 @@ const GitHubActivity = () => {
                             ))}
                         </div>
                         <div className="grid grid-cols-53 grid-rows-7 gap-1">
-                            {grid.flat().map((day, index) => (
-                                <Tooltip key={index} delayDuration={100}>
-                                    <TooltipTrigger asChild>
-                                        <div
-                                            className="w-3 h-3 rounded-full"
-                                            style={{ backgroundColor: `var(--contribution-level-${day?.level ?? 0})` }}
-                                        ></div>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        <p className="text-xs">
-                                            {day ? `${day.contributions} contributions on ${new Date(day.date).toDateString()}` : 'No contributions'}
-                                        </p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            ))}
+                            {Array.from({ length: WEEKS * DAYS_IN_WEEK }).map((_, index) => {
+                                const weekIndex = Math.floor(index / DAYS_IN_WEEK);
+                                const dayIndex = index % DAYS_IN_WEEK;
+                                const day = grid[dayIndex]?.[weekIndex];
+
+                                return (
+                                    <Tooltip key={index} delayDuration={100}>
+                                        <TooltipTrigger asChild>
+                                            <div
+                                                className="w-3 h-3 rounded-[2px]"
+                                                style={{ backgroundColor: day?.color ?? 'var(--contribution-level-0)' }}
+                                            ></div>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p className="text-xs">
+                                                {day ? `${day.contributionCount} contributions on ${new Date(day.date).toDateString()}` : 'No contributions'}
+                                            </p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                );
+                            })}
                         </div>
                     </div>
                      <div className="flex justify-end items-center gap-2 mt-2 text-xs text-muted-foreground w-full">
                         <span>Less</span>
-                        <div className="w-3 h-3 rounded-full bg-[--contribution-level-0]"></div>
-                        <div className="w-3 h-3 rounded-full bg-[--contribution-level-1]"></div>
-                        <div className="w-3 h-3 rounded-full bg-[--contribution-level-2]"></div>
-                        <div className="w-3 h-3 rounded-full bg-[--contribution-level-3]"></div>
-                        <div className="w-3 h-3 rounded-full bg-[--contribution-level-4]"></div>
+                        <div className="w-3 h-3 rounded-[2px] bg-[--contribution-level-0]"></div>
+                        <div className="w-3 h-3 rounded-[2px] bg-[--contribution-level-1]"></div>
+                        <div className="w-3 h-3 rounded-[2px] bg-[--contribution-level-2]"></div>
+                        <div className="w-3 h-3 rounded-[2px] bg-[--contribution-level-3]"></div>
+                        <div className="w-3 h-3 rounded-[2px] bg-[--contribution-level-4]"></div>
                         <span>More</span>
                     </div>
                 </div>
