@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useEffect, useState } from 'react';
@@ -7,29 +8,20 @@ const WEEKS = 53;
 const DAYS_IN_WEEK = 7;
 const TOTAL_DAYS = WEEKS * DAYS_IN_WEEK;
 
-// This function generates random contribution data for the past year.
+// This function generates placeholder contribution data for the past year.
 const generateActivityData = () => {
     const data = Array.from({ length: TOTAL_DAYS }, (_, i) => {
         const today = new Date();
         const date = new Date(today);
         date.setDate(today.getDate() - (TOTAL_DAYS - 1 - i));
         
-        let level = 0;
-        const dayOfWeek = date.getDay();
-
-        // Higher chance of contributions on weekdays
-        const isWeekday = dayOfWeek > 0 && dayOfWeek < 6;
-        const baseProbability = isWeekday ? 0.7 : 0.3;
-
-        // Randomly assign a contribution level (0-4)
-        if (Math.random() < baseProbability) {
-            level = Math.floor(Math.random() * 4) + 1;
-        }
+        // Default to level 0 (no contributions)
+        const level = 0;
 
         return {
             date: date.toISOString().split('T')[0],
             level,
-            contributions: level > 0 ? Math.floor(Math.random() * 20) + 1 : 0
+            contributions: 0
         };
     });
     return data;
@@ -58,12 +50,13 @@ const getMonthLabels = () => {
 }
 
 const GitHubActivity = () => {
-    // We use state to ensure this part of the component only runs on the client,
-    // avoiding hydration mismatches due to random data generation.
+    // We use state to ensure this part of the component only runs on the client.
     const [activityData, setActivityData] = useState<any[]>([]);
     const [monthLabels, setMonthLabels] = useState<{ month: string, week: number }[]>([]);
 
     useEffect(() => {
+        // In a real implementation, you would fetch data from the GitHub API here.
+        // For now, we are using generated placeholder data.
         setActivityData(generateActivityData());
         setMonthLabels(getMonthLabels());
     }, []);
@@ -93,7 +86,7 @@ const GitHubActivity = () => {
                 <div className="flex flex-col items-start">
                     <div className="relative w-full h-5 mb-1">
                         {monthLabels.map(({ month, week }) => (
-                            <div key={`${month}-${week}`} className="text-xs text-muted-foreground absolute" style={{ left: `${week * 16}px` }}>
+                            <div key={`${month}-${week}`} className="text-xs text-muted-foreground absolute" style={{ left: `${(week * 16)}px` }}>
                                 {month}
                             </div>
                         ))}
@@ -101,7 +94,7 @@ const GitHubActivity = () => {
                     <div className="flex gap-3">
                         <div className="grid grid-rows-7 gap-1 text-xs text-muted-foreground pr-1">
                             {dayLabels.map((day, i) => (
-                                <div key={day} className="h-2.5 leading-none mt-px" style={{ visibility: i % 2 !== 0 ? 'visible' : 'hidden' }}>{day}</div>
+                                <div key={day} className="h-3 leading-none mt-px" style={{ visibility: i % 2 !== 0 ? 'visible' : 'hidden' }}>{day}</div>
                             ))}
                         </div>
                         <div className="grid grid-cols-53 grid-rows-7 gap-1">
@@ -109,7 +102,7 @@ const GitHubActivity = () => {
                                 <Tooltip key={index} delayDuration={100}>
                                     <TooltipTrigger asChild>
                                         <div
-                                            className="w-2.5 h-2.5 rounded-full"
+                                            className="w-3 h-3 rounded-full"
                                             style={{ backgroundColor: `var(--contribution-level-${day?.level ?? 0})` }}
                                         ></div>
                                     </TooltipTrigger>
@@ -124,11 +117,11 @@ const GitHubActivity = () => {
                     </div>
                      <div className="flex justify-end items-center gap-2 mt-2 text-xs text-muted-foreground w-full">
                         <span>Less</span>
-                        <div className="w-2.5 h-2.5 rounded-full bg-[--contribution-level-0]"></div>
-                        <div className="w-2.5 h-2.5 rounded-full bg-[--contribution-level-1]"></div>
-                        <div className="w-2.5 h-2.5 rounded-full bg-[--contribution-level-2]"></div>
-                        <div className="w-2.5 h-2.5 rounded-full bg-[--contribution-level-3]"></div>
-                        <div className="w-2.5 h-2.5 rounded-full bg-[--contribution-level-4]"></div>
+                        <div className="w-3 h-3 rounded-full bg-[--contribution-level-0]"></div>
+                        <div className="w-3 h-3 rounded-full bg-[--contribution-level-1]"></div>
+                        <div className="w-3 h-3 rounded-full bg-[--contribution-level-2]"></div>
+                        <div className="w-3 h-3 rounded-full bg-[--contribution-level-3]"></div>
+                        <div className="w-3 h-3 rounded-full bg-[--contribution-level-4]"></div>
                         <span>More</span>
                     </div>
                 </div>
